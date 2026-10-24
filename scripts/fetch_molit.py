@@ -313,6 +313,22 @@ def probe(key: str) -> int:
         print(f"[실행 서버 IP] {ip}")
     except Exception as e:
         print(f"[실행 서버 IP] 확인 실패 {e}")
+    # 단지정보 서비스 주소 후보 확인 (12=서비스 없음, 30=키 미등록, 000/00=정상)
+    cands = ["AptListService4/getSigunguAptList4", "AptListService3/getSigunguAptList3", "AptListService3/getTotalAptList3",
+             "AptListService2/getSigunguAptList", "AptListService1/getSigunguAptList",
+             "AptBasisInfoServiceV4/getAphusBassInfoV4", "AptBasisInfoServiceV3/getAphusBassInfoV3",
+             "AptBasisInfoServiceV2/getAphusBassInfoV2", "AptBasisInfoService1/getAphusBassInfo"]
+    for c in cands:
+        q = urllib.parse.urlencode({"serviceKey": key, "sigunguCode": "11290", "kaptCode": "A10027875", "pageNo": 1, "numOfRows": 1})
+        try:
+            raw = http_get(f"https://apis.data.go.kr/1613000/{c}?{q}")
+        except urllib.error.HTTPError as e:
+            raw = e.read()
+        except Exception as e:
+            raw = str(e).encode()
+        t = raw.decode("utf-8", "replace")
+        m = re.search(r"<(?:errMsg|resultCode)>([^<]+)<", t) or re.search(r'"resultCode"\s*:\s*"([^"]+)"', t)
+        print(f"[후보] {c}: {m.group(1) if m else t[:80]!r}")
     print(f"[키 형태] 길이 {len(key)} · '%' 포함={'%' in key} · 앞뒤공백={key != key.strip()}")
     return 0
 
