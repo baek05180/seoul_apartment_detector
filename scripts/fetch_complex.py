@@ -87,6 +87,8 @@ def call(url: str, key: str, **params):
             raw = http_get(f"{url}?{q}")
         except urllib.error.HTTPError as e:
             raw = e.read()
+            if e.code == 429:
+                raise ApiError("하루 호출량 소진(429) — 내일 자동 실행에서 이어서 받음")
             if e.code in (401, 403):
                 try:
                     parse(raw)
