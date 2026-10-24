@@ -7,10 +7,10 @@
 - 출력: site/data/summary.json
 
 정제 규칙
-- 매매: 해제된 거래(cdealType='O') 제외, 직거래 제외(가족 간 저가 거래 등 왜곡 방지)
+- 매매: 해제된 거래(cdealType='O') 제외, 직거래는 표시만 해 두고 화면에서 포함 여부 선택
 - 단지 병합: 같은 구·같은 동·같은 단지명(공백/'아파트' 제거)은 하나로 합침
 - 평형: 전용면적을 1㎡ 단위로 반올림해서 묶음
-- 대표값: 평균 대신 중간값(이상치에 덜 흔들림)
+- 대표값(매매 중간값 등)은 화면에서 계산 / 전세 중간값은 여기서 계산
 """
 import datetime as dt
 import json
@@ -186,9 +186,37 @@ def med(xs):
     return int(statistics.median(xs)) if xs else None
 
 
+def jibun_keys(gu: str, umd: str, jibun: str) -> list:
+    jibun = (jibun or "").strip()
+    if not jibun:
+        return []
+    main = jibun.split("-")[0]
+    keys = [f"{gu}|{umd}|{jibun}"]
+    if main != jibun:
+        keys.append(f"{gu}|{umd}|{main}")
+    return keys
+
+
+def load_kapt() -> dict:
+    """공동주택 단지정보 캐시(fetch_complex.py가 만든 것)를 지번 키로 색인."""
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "kapt.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            cx = json.load(f).get("complexes", {})
+    except FileNotFoundError:
+        return {}
+    idx = {}
+    for code, c in cx.items():
+        if not c.get("hh"):
+            continue
+        for k in jibun_keys(c.get("gu", ""), c.get("umd", ""), c.get("jibun", "")):
+            idx.setdefault(k, (code, c))
+    return idx
+
+
 def build(trades, rents, today: dt.date) -> list:
     d90 = (today - dt.timedelta(days=90)).isoformat()
-    d180 = (today - dt.timedelta(days=180)).isoformat()
+    kapt = load_kapt()
 
     groups = {}
     seq2key = {}  # 단지 일련번호 → 병합 키 (전월세는 단지명이 다르게 신고되기도 해서 번호로 연결)
@@ -198,12 +226,12 @@ def build(trades, rents, today: dt.date) -> list:
         k = (gkey(t), round(t["area"]))
         if t["seq"]:
             seq2key[t["seq"]] = gkey(t)
-        grp = groups.setdefault(k, {"t": [], "r": [], "names": {}, "jibun": set(), "road": set(),
+        grp = groups.setdefault(k, {"t": [], "r": [], "names": {}, "jibun": {}, "road": set(),
                                     "built": set(), "areas": {}})
         grp["t"].append(t)
         grp["names"][t["name"]] = grp["names"].get(t["name"], 0) + 1
         if t["jibun"]:
-            grp["jibun"].add(t["jibun"])
+            grp["jibun"][t["jibun"]] = grp["jibun"].get(t["jibun"], 0) + 1
         if t["road"]:
             grp["road"].add(t["road"])
         if t["built"]:
@@ -216,42 +244,43 @@ def build(trades, rents, today: dt.date) -> list:
         if k in groups:
             groups[k]["r"].append(r)
 
-    items = []
+    items, matched = [], 0
     for (key, _bucket), grp in groups.items():
         sgg, umd, _ = key.split("|", 2)
+        gu = SEOUL.get(sgg, sgg)
         ts = sorted(grp["t"], key=lambda x: x["date"], reverse=True)
-        p3 = [t["price"] for t in ts if t["date"] >= d90]
-        pprev = [t["price"] for t in ts if d180 <= t["date"] < d90]
         jeonse = [r for r in grp["r"] if r["monthly"] == 0 and r["deposit"] > 0]
         j3 = [r["deposit"] for r in jeonse if r["date"] >= d90]
         j6 = [r["deposit"] for r in jeonse]
-        wolse = [r for r in grp["r"] if r["monthly"] > 0]
-
-        sale3 = med(p3)
-        sale6 = med([t["price"] for t in ts])
-        js = med(j3) if j3 else med(j6)
-        base_sale = sale3 or sale6
         area = max(grp["areas"], key=grp["areas"].get)
-        items.append({
-            "id": f"{key}|{round(area)}",
+        jbs = sorted(grp["jibun"], key=grp["jibun"].get, reverse=True)
+        it = {
             "n": max(grp["names"], key=grp["names"].get),
-            "g": SEOUL.get(sgg, sgg),
+            "g": gu,
             "d": umd,
             "a": area,
             "b": max(grp["built"]) if grp["built"] else None,
-            "jb": sorted(grp["jibun"])[:4],
+            "jb": jbs[:4],
             "rd": sorted(grp["road"])[:2],
-            "s3": sale3, "c3": len(p3),               # 최근 3개월 매매 중간값/건수
-            "s6": sale6, "c6": len(ts),               # 6개월
-            "sp": med(pprev),                         # 직전 3개월(3~6개월 전) 중간값
-            "lo": min(p3) if p3 else None, "hi": max(p3) if p3 else None,
-            "j": js, "jc3": len(j3), "jc6": len(j6),  # 전세 중간값/건수
-            "jr": round(js / base_sale * 100, 1) if js and base_sale else None,
-            "jf": not j3 and bool(j6),               # 전세가 6개월 값으로 대체됐는지
-            "wc": len(wolse),
-            "t": [[t["date"], t["price"], t["floor"]] for t in ts[:10]],
-        })
+            "j": med(j3) if j3 else med(j6), "jc3": len(j3), "jc6": len(j6),  # 전세 중간값/건수
+            "jf": not j3 and bool(j6),                                       # 6개월 값으로 대체
+            "wc": len([r for r in grp["r"] if r["monthly"] > 0]),
+            # 6개월 매매 전부: [계약일, 금액(만원), 층, 직거래여부]
+            "t": [[t["date"], t["price"], t["floor"], 1 if t["direct"] else 0] for t in ts],
+        }
+        # 단지정보(세대수·주차·지하철) 결합: 지번으로 찾음
+        for jb in jbs:
+            hit = next((kapt[k] for k in jibun_keys(gu, umd, jb) if k in kapt), None)
+            if hit:
+                code, c = hit
+                it.update({"kc": code, "hh": c.get("hh"), "pk": c.get("pk"), "sw": c.get("subTime"),
+                           "st": c.get("subSt"), "sl": c.get("subLine"), "dc": c.get("dong"),
+                           "hb": c.get("builder"), "ht": c.get("heat")})
+                matched += 1
+                break
+        items.append(it)
     items.sort(key=lambda x: (x["g"], x["d"], x["n"], x["a"]))
+    print(f"단지정보 연결: {matched}/{len(items)}")
     return items
 
 
@@ -317,8 +346,7 @@ def main() -> int:
                         stats["cancelled"] += 1
                         continue
                     if t["direct"]:
-                        stats["direct"] += 1
-                        continue
+                        stats["direct"] += 1  # 직거래는 남겨두고 화면에서 포함 여부를 고름
                     trades.append(t)
                     by_month[ym]["trade"] += 1
                 for it in fetch_all(RENT_URL, key, lawd, ym):

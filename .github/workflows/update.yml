@@ -25,10 +25,14 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+      ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+      PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v5
 
@@ -36,38 +40,37 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 국토부 실거래 수집
+      - name: 단지정보·금리·실거래 수집
         if: github.event_name != 'push'
-        env:
-          MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
-          MONTHS: "6"
-          PROBE: ${{ inputs.probe && '1' || '0' }}
-          PYTHONUNBUFFERED: "1"
         shell: bash
+        env:
+          MONTHS: "6"
+          TIME_BUDGET_MIN: "20"
+          PROBE: ${{ inputs.probe && '1' || '0' }}
         run: |
           mkdir -p diag
           set -o pipefail
-          python scripts/fetch_molit.py 2>&1 | tee diag/last_run.log
+          {
+            echo "== $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M') =="
+            if [ "$PROBE" != "1" ]; then
+              echo "-- 단지정보 --"; python scripts/fetch_complex.py || echo "(단지정보 단계 실패, 계속 진행)"
+              echo "-- 금리 --";     python scripts/fetch_rate.py    || echo "(금리 단계 실패, 계속 진행)"
+            fi
+            echo "-- 실거래 --";     python scripts/fetch_molit.py
+          } 2>&1 | tee diag/last_run.log
 
-      - name: 실행 기록 저장
+      - name: 결과 저장(커밋)
         if: always() && github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add diag/last_run.log
-          git diff --cached --quiet || (git commit -m "실행 기록 $(TZ=Asia/Seoul date +'%m-%d %H:%M')" && git push)
-
-      - name: 데이터 저장(커밋)
-        if: github.event_name != 'push' && !inputs.probe
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase -q
-          git add site/data/summary.json
+          [ "${{ inputs.probe }}" = "true" ] || git add -A data site/data
           if git diff --cached --quiet; then
             echo "변경 없음"
           else
-            git commit -m "실거래 데이터 업데이트 $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M')"
+            git commit -m "데이터 업데이트 $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M')"
+            git pull --rebase -q
             git push
           fi
 
