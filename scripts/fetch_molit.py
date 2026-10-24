@@ -138,6 +138,7 @@ def parse_trade(item, sgg_code):
         "sgg": sgg_code,
         "umd": g(item, "umdNm", "법정동"),
         "name": g(item, "aptNm", "아파트"),
+        "seq": g(item, "aptSeq"),
         "jibun": g(item, "jibun", "지번"),
         "road": g(item, "roadNm", "도로명"),
         "area": num(g(item, "excluUseAr", "전용면적")),
@@ -155,6 +156,7 @@ def parse_rent(item, sgg_code):
         "sgg": sgg_code,
         "umd": g(item, "umdNm", "법정동"),
         "name": g(item, "aptNm", "아파트"),
+        "seq": g(item, "aptSeq"),
         "jibun": g(item, "jibun", "지번"),
         "area": num(g(item, "excluUseAr", "전용면적")),
         "deposit": int(num(g(item, "deposit", "보증금액"))),
@@ -189,10 +191,13 @@ def build(trades, rents, today: dt.date) -> list:
     d180 = (today - dt.timedelta(days=180)).isoformat()
 
     groups = {}
+    seq2key = {}  # 단지 일련번호 → 병합 키 (전월세는 단지명이 다르게 신고되기도 해서 번호로 연결)
     for t in trades:
         if t["area"] <= 0 or t["price"] <= 0:
             continue
         k = (gkey(t), round(t["area"]))
+        if t["seq"]:
+            seq2key[t["seq"]] = gkey(t)
         grp = groups.setdefault(k, {"t": [], "r": [], "names": {}, "jibun": set(), "road": set(),
                                     "built": set(), "areas": {}})
         grp["t"].append(t)
@@ -207,7 +212,7 @@ def build(trades, rents, today: dt.date) -> list:
         grp["areas"][a] = grp["areas"].get(a, 0) + 1
 
     for r in rents:
-        k = (gkey(r), round(r["area"]))
+        k = (seq2key.get(r["seq"]) or gkey(r), round(r["area"]))
         if k in groups:
             groups[k]["r"].append(r)
 
