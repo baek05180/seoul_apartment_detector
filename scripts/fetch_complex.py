@@ -91,7 +91,9 @@ def call(url: str, key: str, **params):
                 except ApiError:
                     raise
                 raise ApiError(f"HTTP {e.code}: {raw[:200]!r}")
-            last = e
+            last = f"HTTP {e.code} {raw[:160].decode('utf-8', 'replace')!r}"
+            if e.code == 400:
+                break
             time.sleep(2 * (attempt + 1))
             continue
         except Exception as e:
