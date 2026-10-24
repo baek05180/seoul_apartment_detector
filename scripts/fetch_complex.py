@@ -39,6 +39,7 @@ SEOUL = {
 CACHE = os.path.join(os.path.dirname(__file__), "..", "data", "kapt.json")
 LIST_MAX_AGE = 30     # 일
 INFO_MAX_AGE = 180    # 일
+SCHEMA = 2            # 저장 형식이 바뀌면 올려서 전부 다시 받음
 
 
 class ApiError(RuntimeError):
@@ -121,8 +122,12 @@ def first_working(cands, key, **params):
 
 
 def to_int(v):
-    s = re.sub(r"[^0-9]", "", str(v or ""))
-    return int(s) if s else 0
+    """'461.0', 461.0, '1,200' 모두 처리"""
+    s = re.sub(r"[^0-9.]", "", str(v if v is not None else ""))
+    try:
+        return int(float(s)) if s else 0
+    except ValueError:
+        return 0
 
 
 def split_addr(addr: str, gu: str):
@@ -131,7 +136,7 @@ def split_addr(addr: str, gu: str):
     if gu in toks:
         i = toks.index(gu)
         umd = toks[i + 1] if len(toks) > i + 1 else ""
-        jb = toks[i + 2] if len(toks) > i + 2 else ""
+        jb = (toks[i + 2] if len(toks) > i + 2 else "").rstrip("-")
         if re.fullmatch(r"산?\d+(-\d+)?", jb):
             return umd, jb
         return umd, ""
@@ -195,7 +200,8 @@ def main() -> int:
         return 0
 
     todo = [k for k, c in cx.items()
-            if not c.get("fetched") or (today - dt.date.fromisoformat(c["fetched"])).days >= INFO_MAX_AGE]
+            if c.get("v") != SCHEMA or not c.get("addr")
+            or (today - dt.date.fromisoformat(c["fetched"])).days >= INFO_MAX_AGE]
     print(f"정보 받을 단지 {len(todo)}개 (전체 {len(cx)}개)")
     lock = threading.Lock()
     done = 0
@@ -204,11 +210,15 @@ def main() -> int:
     def work(kc):
         if time.time() > budget or auth_fail:
             return kc, None
-        b, _ = call(bas_ep, key, kaptCode=kc)
-        d, _ = call(dtl_ep, key, kaptCode=kc)
-        return kc, (b[0] if b else {}, d[0] if d else {})
+        for attempt in range(3):           # 너무 빨리 부르면 빈 응답이 오기도 해서 재시도
+            b, _ = call(bas_ep, key, kaptCode=kc)
+            d, _ = call(dtl_ep, key, kaptCode=kc)
+            if b and b[0].get("kaptAddr"):
+                return kc, (b[0], d[0] if d else {})
+            time.sleep(1.5 * (attempt + 1))
+        return kc, None
 
-    with ThreadPoolExecutor(max_workers=4) as ex:
+    with ThreadPoolExecutor(max_workers=3) as ex:
         futs = [ex.submit(work, kc) for kc in todo]
         for fu in as_completed(futs):
             try:
@@ -237,7 +247,7 @@ def main() -> int:
                     "subLine": d.get("subwayLine", ""), "subSt": d.get("subwayStation", ""),
                     "subTime": d.get("kaptdWtimesub", ""), "busTime": d.get("kaptdWtimebus", ""),
                     "edu": (d.get("educationFacility") or "")[:200],
-                    "fetched": today.isoformat(),
+                    "fetched": today.isoformat(), "v": SCHEMA,
                 })
                 done += 1
                 if done % 200 == 0:

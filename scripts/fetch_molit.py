@@ -211,7 +211,28 @@ def load_kapt() -> dict:
             continue
         for k in jibun_keys(c.get("gu", ""), c.get("umd", ""), c.get("jibun", "")):
             idx.setdefault(k, (code, c))
+        umd = c.get("umd") or c.get("umdList", "")
+        idx.setdefault(f"N|{c.get('gu')}|{umd}|{norm_name(c.get('name', '')).replace('아파트', '')}", (code, c))
     return idx
+
+
+def kapt_lookup(kapt: dict, gu: str, umd: str, jbs: list, name: str):
+    """지번 → 같은 동의 같은 이름 → 같은 동에서 이름이 서로 포함되는 단지(하나뿐일 때) 순으로 찾음."""
+    for jb in jbs:
+        for k in jibun_keys(gu, umd, jb):
+            if k in kapt:
+                return kapt[k]
+    nm = norm_name(name).replace("아파트", "")
+    hit = kapt.get(f"N|{gu}|{umd}|{nm}")
+    if hit:
+        return hit
+    if len(nm) >= 3:
+        pre = f"N|{gu}|{umd}|"
+        cands = {v[0]: v for k, v in kapt.items() if k.startswith(pre) and len(k) > len(pre) + 2
+                 and (nm in k[len(pre):] or k[len(pre):] in nm)}
+        if len(cands) == 1:
+            return next(iter(cands.values()))
+    return None
 
 
 def build(trades, rents, today: dt.date) -> list:
@@ -269,15 +290,13 @@ def build(trades, rents, today: dt.date) -> list:
             "t": [[t["date"], t["price"], t["floor"], 1 if t["direct"] else 0] for t in ts],
         }
         # 단지정보(세대수·주차·지하철) 결합: 지번으로 찾음
-        for jb in jbs:
-            hit = next((kapt[k] for k in jibun_keys(gu, umd, jb) if k in kapt), None)
-            if hit:
-                code, c = hit
-                it.update({"kc": code, "hh": c.get("hh"), "pk": c.get("pk"), "sw": c.get("subTime"),
-                           "st": c.get("subSt"), "sl": c.get("subLine"), "dc": c.get("dong"),
-                           "hb": c.get("builder"), "ht": c.get("heat")})
-                matched += 1
-                break
+        hit = kapt_lookup(kapt, gu, umd, jbs, it["n"])
+        if hit:
+            code, c = hit
+            it.update({"kc": code, "hh": c.get("hh"), "pk": c.get("pk"), "sw": c.get("subTime") or None,
+                       "st": c.get("subSt") or None, "sl": c.get("subLine") or None, "dc": c.get("dong"),
+                       "hb": c.get("builder") or None, "ht": c.get("heat") or None})
+            matched += 1
         items.append(it)
     items.sort(key=lambda x: (x["g"], x["d"], x["n"], x["a"]))
     print(f"단지정보 연결: {matched}/{len(items)}")
