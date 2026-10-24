@@ -22,8 +22,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 KST = dt.timezone(dt.timedelta(hours=9))
 BASE = "https://apis.data.go.kr/1613000"
-LIST_EPS = [f"{BASE}/AptListService3/getSigunguAptList3", f"{BASE}/AptListService2/getSigunguAptList"]
+LIST_EPS = [f"{BASE}/AptListService4/getSigunguAptList4", f"{BASE}/AptListService3/getSigunguAptList3", f"{BASE}/AptListService2/getSigunguAptList"]
 INFO_EPS = [  # (기본정보, 상세정보)
+    (f"{BASE}/AptBasisInfoServiceV5/getAphusBassInfoV5", f"{BASE}/AptBasisInfoServiceV5/getAphusDtlInfoV5"),
     (f"{BASE}/AptBasisInfoServiceV4/getAphusBassInfoV4", f"{BASE}/AptBasisInfoServiceV4/getAphusDtlInfoV4"),
     (f"{BASE}/AptBasisInfoServiceV3/getAphusBassInfoV3", f"{BASE}/AptBasisInfoServiceV3/getAphusDtlInfoV3"),
     (f"{BASE}/AptBasisInfoService1/getAphusBassInfo", f"{BASE}/AptBasisInfoService1/getAphusDtlInfo"),

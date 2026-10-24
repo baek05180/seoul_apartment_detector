@@ -314,11 +314,8 @@ def probe(key: str) -> int:
     except Exception as e:
         print(f"[실행 서버 IP] 확인 실패 {e}")
     # 단지정보 서비스 주소 후보 확인 (12=서비스 없음, 30=키 미등록, 000/00=정상)
-    cands = ["AptListService4/getSigunguAptList4",
-             "AptBasisInfoService4/getAphusBassInfo4", "AptBasisInfoService4/getAphusDtlInfo4",
-             "AptBasisInfoServiceV4/getAphusBassInfo4", "AptBasisInfoServiceV4/getAphusDtlInfoV4",
-             "AptBasisInfoService3/getAphusBassInfo3", "AptBasisInfoServiceV3/getAphusBassInfo",
-             "AptBasisInfoService/getAphusBassInfo", "AptBasisInfoService4/getAphusBassInfoV4"]
+    cands = ["AptListService4/getSigunguAptList4", "AptBasisInfoServiceV5/getAphusBassInfoV5",
+             "AptBasisInfoServiceV5/getAphusDtlInfoV5"]
     for c in cands:
         q = urllib.parse.urlencode({"serviceKey": key, "sigunguCode": "11290", "kaptCode": "A10027875", "pageNo": 1, "numOfRows": 1})
         try:
