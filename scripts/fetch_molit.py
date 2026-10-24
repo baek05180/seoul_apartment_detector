@@ -207,7 +207,7 @@ def load_kapt() -> dict:
         return {}
     idx = {}
     for code, c in cx.items():
-        if not c.get("hh"):
+        if not c.get("hh") or c.get("v") != 2:   # 형식이 맞는(검증된) 것만 사용
             continue
         for k in jibun_keys(c.get("gu", ""), c.get("umd", ""), c.get("jibun", "")):
             idx.setdefault(k, (code, c))

@@ -207,8 +207,10 @@ def main() -> int:
     done = 0
     auth_fail = []
 
+    misses = [0]   # 연속 빈 응답 수 → 하루 호출량이 바닥난 것으로 보고 멈춤
+
     def work(kc):
-        if time.time() > budget or auth_fail:
+        if time.time() > budget or auth_fail or misses[0] >= 25:
             return kc, None
         for attempt in range(3):           # 너무 빨리 부르면 빈 응답이 오기도 해서 재시도
             b, _ = call(bas_ep, key, kaptCode=kc)
@@ -230,7 +232,9 @@ def main() -> int:
                 print(f"[경고] {e}", file=sys.stderr)
                 continue
             if res is None:
+                misses[0] += 1
                 continue
+            misses[0] = 0
             b, d = res
             with lock:
                 c = cx[kc]
@@ -256,7 +260,9 @@ def main() -> int:
     if auth_fail:
         print(f"[중단] 인증/권한 오류: {auth_fail[0]}")
     save(cache)
-    left = sum(1 for c in cx.values() if not c.get("fetched"))
+    if misses[0] >= 25:
+        print("빈 응답이 계속돼 멈춤(하루 호출량 소진 추정) → 다음 실행에서 이어서 받음")
+    left = sum(1 for c in cx.values() if c.get("v") != SCHEMA or not c.get("addr"))
     print(f"이번 실행 {done}개 수집 · 아직 남은 단지 {left}개")
     return 0
 
