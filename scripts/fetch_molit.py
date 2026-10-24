@@ -19,6 +19,7 @@ import re
 import statistics
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -252,8 +253,25 @@ def probe(key: str) -> int:
             raw = http_get(f"{base}?{q}")
             print(f"[{name}] {time.time()-t0:.1f}초 · {len(raw)}바이트")
             print(raw[:700].decode("utf-8", "replace").replace(key, "***"))
+        except urllib.error.HTTPError as e:
+            body = e.read()[:500].decode("utf-8", "replace").replace(key, "***")
+            print(f"[{name}] 실패 {time.time()-t0:.1f}초: HTTP {e.code} 헤더={dict(e.headers)} 본문={body}")
         except Exception as e:
             print(f"[{name}] 실패 {time.time()-t0:.1f}초: {type(e).__name__}: {e}")
+    # 키 없이도 같은 결과면 키 문제가 아니라 접속(IP) 차단
+    try:
+        raw = http_get(f"{TRADE_URL}?serviceKey=invalid&LAWD_CD=11290&DEAL_YMD={last}")
+        print(f"[키 없이] 응답 {len(raw)}바이트: {raw[:300].decode('utf-8','replace')}")
+    except urllib.error.HTTPError as e:
+        print(f"[키 없이] HTTP {e.code}: {e.read()[:300].decode('utf-8','replace')}")
+    except Exception as e:
+        print(f"[키 없이] {type(e).__name__}: {e}")
+    try:
+        ip = http_get("https://api.ipify.org").decode()
+        print(f"[실행 서버 IP] {ip}")
+    except Exception as e:
+        print(f"[실행 서버 IP] 확인 실패 {e}")
+    print(f"[키 형태] 길이 {len(key)} · '%' 포함={'%' in key} · 앞뒤공백={key != key.strip()}")
     return 0
 
 
