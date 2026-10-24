@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울 아파트 실거래 탐색</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#151a23; --sub:#5b6474; --line:#e3e6eb;
+  --accent:#1f5eff; --accent-soft:#e8efff; --up:#d1342f; --down:#1f6fd1; --warn:#a15c00; --warn-soft:#fff4e0;
+  --chip:#eef0f3; --shadow:0 1px 2px rgba(20,26,35,.05),0 4px 14px rgba(20,26,35,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1218; --panel:#171b23; --ink:#e8ebf0; --sub:#9aa3b2; --line:#2a303b;
+    --accent:#6f9bff; --accent-soft:#1d2a47; --up:#ff6b66; --down:#6aa8ff; --warn:#ffb648; --warn-soft:#2e2414;
+    --chip:#222833; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 16px 64px}
+header h1{margin:0;font-size:24px;letter-spacing:-.02em}
+header p{margin:6px 0 0;color:var(--sub)}
+.fresh{margin-top:18px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+.fresh .k{color:var(--sub);font-size:13px}
+.fresh .v{font-weight:700;font-variant-numeric:tabular-nums}
+.fresh .facts{display:flex;flex-wrap:wrap;gap:6px 22px}
+.bars{display:flex;gap:6px;align-items:flex-end;height:54px}
+.bar{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--sub)}
+.bar i{display:block;width:26px;background:var(--accent);border-radius:4px 4px 0 0;opacity:.85}
+.bar.partial i{background:repeating-linear-gradient(45deg,var(--accent) 0 4px,transparent 4px 7px);border:1px solid var(--accent)}
+.note{grid-column:1/-1;font-size:13px;color:var(--warn);background:var(--warn-soft);border-radius:8px;padding:8px 10px}
+.filters{position:sticky;top:0;z-index:5;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.frow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.frow+.frow{margin-top:10px}
+label.f{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub)}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+input[type=number]{width:78px}
+input[type=search]{width:180px}
+.gu{display:flex;flex-wrap:wrap;gap:6px}
+.gu button,.btn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
+.gu button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+details.gus summary{cursor:pointer;font-size:13px;color:var(--sub);list-style:none}
+details.gus summary::-webkit-details-marker{display:none}
+details.gus[open] summary{margin-bottom:8px}
+.count{margin:16px 2px 8px;color:var(--sub);font-size:14px}
+.list{display:grid;gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.loc{color:var(--sub);font-size:13px;margin-top:2px}
+.price{text-align:right;white-space:nowrap}
+.price .big{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.price .sm{font-size:12px;color:var(--sub)}
+.metrics{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:13px}
+.metrics span b{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)} .muted{color:var(--sub)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--warn-soft);color:var(--warn);margin-left:6px;vertical-align:2px}
+.card details{margin-top:8px}
+.card summary{cursor:pointer;font-size:13px;color:var(--accent)}
+table{border-collapse:collapse;width:100%;max-width:420px;margin-top:8px;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--sub);font-weight:600}
+.links{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.links a{white-space:nowrap}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+.more{display:block;margin:16px auto 0}
+.more[hidden],[hidden]{display:none!important}
+.empty{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:28px;text-align:center;color:var(--sub)}
+@media (max-width:640px){
+  .fresh{grid-template-columns:1fr}
+  .top{flex-direction:column}
+  .price{text-align:left}
+  .filters{position:static}
+  input[type=search]{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>서울 아파트 실거래 탐색</h1>
+    <p>국토교통부 신고 실거래가 기준 · 매일 아침 자동 갱신 · 해제·직거래 제외 · 대표값은 중간값</p>
+  </header>
+
+  <section class="fresh" id="fresh" hidden></section>
+
+  <section class="filters" aria-label="필터">
+    <div class="frow">
+      <input type="search" id="q" placeholder="단지명·동 검색">
+      <label class="f">매매 <input type="number" id="pmin" step="0.5" min="0" placeholder="최소">~<input type="number" id="pmax" step="0.5" min="0" placeholder="최대">억</label>
+      <label class="f">전용 <input type="number" id="amin" min="0" placeholder="최소">~<input type="number" id="amax" min="0" placeholder="최대">㎡</label>
+      <label class="f">준공 <input type="number" id="bmin" min="1960" placeholder="년도">년 이후</label>
+      <label class="f">3개월 거래 <input type="number" id="cmin" min="0" value="1">건 이상</label>
+    </div>
+    <div class="frow">
+      <label class="f">정렬
+        <select id="sort">
+          <option value="s3a">최근 3개월 중간값 낮은 순</option>
+          <option value="s3d">최근 3개월 중간값 높은 순</option>
+          <option value="c3d">거래 많은 순</option>
+          <option value="lastd">최근 거래일 순</option>
+          <option value="trendd">가격 상승률 높은 순</option>
+          <option value="trenda">가격 상승률 낮은 순</option>
+          <option value="jrd">전세가율 높은 순</option>
+          <option value="ppa">㎡당 가격 낮은 순</option>
+        </select>
+      </label>
+      <button class="btn" id="reset" type="button">필터 초기화</button>
+    </div>
+    <div class="frow">
+      <details class="gus" id="gusBox">
+        <summary id="guSummary">구 선택: 서울 전체 ▾</summary>
+        <div class="gu" id="gu"></div>
+      </details>
+    </div>
+  </section>
+
+  <div class="count" id="count"></div>
+  <div class="list" id="list"></div>
+  <button class="btn more" id="more" type="button" hidden>더 보기</button>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
