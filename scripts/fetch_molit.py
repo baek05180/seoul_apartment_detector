@@ -68,6 +68,14 @@ def call(base: str, key: str, lawd: str, ymd: str, page: int) -> ET.Element:
             return root
         except ApiError:
             raise
+        except urllib.error.HTTPError as e:
+            body = e.read()
+            try:
+                check(ET.fromstring(body))
+            except ET.ParseError:
+                pass
+            last = e
+            time.sleep(2 * (attempt + 1))
         except Exception as e:  # 네트워크/일시 오류는 재시도
             last = e
             time.sleep(2 * (attempt + 1))
@@ -277,6 +285,8 @@ def probe(key: str) -> int:
 
 def main() -> int:
     key = os.environ.get("MOLIT_API_KEY", "").strip()
+    if "%" in key:  # Encoding 키가 등록된 경우 Decoding 형태로 되돌림(이중 인코딩 방지)
+        key = urllib.parse.unquote(key)
     if not key:
         print("MOLIT_API_KEY 가 비어 있습니다. GitHub 저장소 Secrets에 등록했는지 확인하세요.", file=sys.stderr)
         return 2
