@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 21 * * *"   # 매일 한국시간 06:17
   workflow_dispatch:         # Actions 탭에서 수동 실행 가능
+    inputs:
+      probe:
+        description: "접속 진단만 실행"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ["site/**", "!site/data/**"]   # 화면 코드만 바꿨을 때는 배포만
@@ -36,13 +41,28 @@ jobs:
         env:
           MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
           MONTHS: "6"
-        run: python scripts/fetch_molit.py
+          PROBE: ${{ inputs.probe && '1' || '0' }}
+          PYTHONUNBUFFERED: "1"
+        shell: bash
+        run: |
+          mkdir -p diag
+          set -o pipefail
+          python scripts/fetch_molit.py 2>&1 | tee diag/last_run.log
 
-      - name: 데이터 저장(커밋)
-        if: github.event_name != 'push'
+      - name: 실행 기록 저장
+        if: always() && github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add diag/last_run.log
+          git diff --cached --quiet || (git commit -m "실행 기록 $(TZ=Asia/Seoul date +'%m-%d %H:%M')" && git push)
+
+      - name: 데이터 저장(커밋)
+        if: github.event_name != 'push' && !inputs.probe
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase -q
           git add site/data/summary.json
           if git diff --cached --quiet; then
             echo "변경 없음"
@@ -52,8 +72,11 @@ jobs:
           fi
 
       - uses: actions/configure-pages@v5
+        if: ${{ !inputs.probe }}
       - uses: actions/upload-pages-artifact@v3
+        if: ${{ !inputs.probe }}
         with:
           path: site
       - id: deploy
+        if: ${{ !inputs.probe }}
         uses: actions/deploy-pages@v4

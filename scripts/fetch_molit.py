@@ -37,6 +37,7 @@ SEOUL = {
 }
 
 ROWS = 1000
+TIMEOUT = int(os.environ.get("HTTP_TIMEOUT", "20"))
 OUT = os.path.join(os.path.dirname(__file__), "..", "site", "data", "summary.json")
 
 
@@ -48,7 +49,7 @@ class ApiError(RuntimeError):
 def http_get(url: str) -> bytes:
     """테스트에서 바꿔 끼울 수 있도록 분리."""
     req = urllib.request.Request(url, headers={"User-Agent": "seoul-apartment-detector/1.0"})
-    with urllib.request.urlopen(req, timeout=40) as r:
+    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
         return r.read()
 
 
@@ -241,11 +242,28 @@ def build(trades, rents, today: dt.date) -> list:
 
 
 # ---------------------------------------------------------------- main
+def probe(key: str) -> int:
+    """접속 진단: 성북구 지난달 1건만 요청해서 응답 시간과 내용을 보여줌(키는 가림)."""
+    last = (dt.datetime.now(KST).replace(day=1) - dt.timedelta(days=1)).strftime("%Y%m")
+    for name, base in (("매매", TRADE_URL), ("전월세", RENT_URL)):
+        q = urllib.parse.urlencode({"serviceKey": key, "LAWD_CD": "11290", "DEAL_YMD": last, "pageNo": 1, "numOfRows": 1})
+        t0 = time.time()
+        try:
+            raw = http_get(f"{base}?{q}")
+            print(f"[{name}] {time.time()-t0:.1f}초 · {len(raw)}바이트")
+            print(raw[:700].decode("utf-8", "replace").replace(key, "***"))
+        except Exception as e:
+            print(f"[{name}] 실패 {time.time()-t0:.1f}초: {type(e).__name__}: {e}")
+    return 0
+
+
 def main() -> int:
     key = os.environ.get("MOLIT_API_KEY", "").strip()
     if not key:
         print("MOLIT_API_KEY 가 비어 있습니다. GitHub 저장소 Secrets에 등록했는지 확인하세요.", file=sys.stderr)
         return 2
+    if os.environ.get("PROBE") == "1":
+        return probe(key)
     n_months = int(os.environ.get("MONTHS", "6"))
     now = dt.datetime.now(KST)
     today = now.date()
@@ -281,6 +299,9 @@ def main() -> int:
             except Exception as e:
                 failures.append(f"{gu} {ym}: {e}")
                 print(f"[경고] {gu} {ym}: {e}", file=sys.stderr)
+                if len(failures) >= 5 and not trades:
+                    print("[중단] 처음부터 연속 실패 — 국토부 서버 접속 문제로 보입니다.", file=sys.stderr)
+                    return 5
         print(f"{gu} 완료 (누적 매매 {len(trades)}건, 전월세 {len(rents)}건)")
 
     if not trades:
