@@ -1,0 +1,1 @@
+# seoul_apartment_detector
