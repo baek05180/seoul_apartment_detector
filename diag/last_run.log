@@ -1,20 +1,52 @@
-== 2026-10-25 00:50 ==
+== 2026-10-25 00:51 ==
+-- 단지정보 --
+단지 목록 3412개
+정보 받을 단지 3412개 (전체 3412개)
+  200개 저장
+  400개 저장
+  600개 저장
+  800개 저장
+  1000개 저장
+  1200개 저장
+  1400개 저장
+  1600개 저장
+  1800개 저장
+  2000개 저장
+  2200개 저장
+  2400개 저장
+  2600개 저장
+  2800개 저장
+  3000개 저장
+  3200개 저장
+  3400개 저장
+이번 실행 3412개 수집 · 아직 남은 단지 0개
+-- 금리 --
+주담대 평균금리 4.66% (2026-08) 저장
 -- 실거래 --
-[매매] 1.0초 · 1117바이트
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptDong> </aptDong><aptNm>길음뉴타운경남아너스빌</aptNm><aptSeq>11290-37</aptSeq><bonbun>1015</bonbun><bubun>0000</bubun><buildYear>1999</buildYear><buyerGbn>개인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>116,000</dealAmount><dealDay>29</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 성북구</estateAgentSggNm><excluUseAr>114.63</excluUseAr><floor>10</floor><jibun>1015</jibun><landCd>1</landCd><landLeaseholdGbn>N</landLeaseholdGb
-[전월세] 0.7초 · 918바이트
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptNm>한신</aptNm><aptSeq>11290-19</aptSeq><buildYear>1998</buildYear><contractTerm> </contractTerm><contractType> </contractType><dealDay>2</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><deposit>10,000</deposit><excluUseAr>68.13</excluUseAr><floor>12</floor><jibun>609-1</jibun><monthlyRent>150</monthlyRent><preDeposit> </preDeposit><preMonthlyRent> </preMonthlyRent><roadnm>성북로4길 52</roadnm><roadnmbcd>0</roadnmbcd><roadnmbonbun>00052</roadnmbonbun><roadnmbubun>00000</roadnmbubun><roadnmcd>4121351</roadnmcd><roadnmseq>
-[키 없이] HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
-<OpenAPI_ServiceResponse>
-<cmmMsgHeader>
-  <errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>
-  <returnAuthMsg>등록되지 않은 서비스키</returnAuthMsg>
-  <returnReasonCode>30</returnReasonCode>
-</cmmMsgHeader>
-</OpenAPI_ServiceResponse>
-
-[실행 서버 IP] 130.131.204.199
-[후보] AptListService4/getSigunguAptList4: '00'
-[후보] AptBasisInfoServiceV5/getAphusBassInfoV5: '00'
-[후보] AptBasisInfoServiceV5/getAphusDtlInfoV5: '00'
-[키 형태] 길이 88 · '%' 포함=False · 앞뒤공백=False
+종로구 완료 (누적 매매 213건, 전월세 909건)
+중구 완료 (누적 매매 551건, 전월세 2322건)
+용산구 완료 (누적 매매 932건, 전월세 4949건)
+성동구 완료 (누적 매매 1516건, 전월세 8653건)
+광진구 완료 (누적 매매 1983건, 전월세 10310건)
+동대문구 완료 (누적 매매 3399건, 전월세 13860건)
+중랑구 완료 (누적 매매 4822건, 전월세 17893건)
+성북구 완료 (누적 매매 6355건, 전월세 20927건)
+강북구 완료 (누적 매매 6989건, 전월세 22163건)
+도봉구 완료 (누적 매매 8444건, 전월세 24255건)
+노원구 완료 (누적 매매 11734건, 전월세 31238건)
+은평구 완료 (누적 매매 13151건, 전월세 35157건)
+서대문구 완료 (누적 매매 14202건, 전월세 37784건)
+마포구 완료 (누적 매매 15001건, 전월세 42431건)
+양천구 완료 (누적 매매 16010건, 전월세 46887건)
+강서구 완료 (누적 매매 17952건, 전월세 52942건)
+구로구 완료 (누적 매매 19788건, 전월세 58014건)
+금천구 완료 (누적 매매 20390건, 전월세 59408건)
+영등포구 완료 (누적 매매 21523건, 전월세 63924건)
+동작구 완료 (누적 매매 22494건, 전월세 67335건)
+관악구 완료 (누적 매매 23515건, 전월세 69803건)
+서초구 완료 (누적 매매 24466건, 전월세 75560건)
+강남구 완료 (누적 매매 25552건, 전월세 84336건)
+송파구 완료 (누적 매매 27294건, 전월세 91897건)
+강동구 완료 (누적 매매 28723건, 전월세 97521건)
+단지정보 연결: 369/8617
+저장: /home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/../site/data/summary.json · 단지·평형 8617개 · 최신 계약일 2026-10-23 · 실패 0건
