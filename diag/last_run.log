@@ -1,21 +1,7 @@
-[매매] 실패 0.5초: HTTP 403 헤더={'X-Trace-Id': 'aefb3086b29f4b9e', 'Vary': 'Origin', 'X-XSS-Protection': '1; mode=block', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Content-Type': 'application/xml', 'Content-Length': '286', 'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0', 'connection': 'close'} 본문=<?xml version="1.0" encoding="UTF-8"?>
-<OpenAPI_ServiceResponse>
-<cmmMsgHeader>
-  <errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>
-  <returnAuthMsg>등록되지 않은 서비스키</returnAuthMsg>
-  <returnReasonCode>30</returnReasonCode>
-</cmmMsgHeader>
-</OpenAPI_ServiceResponse>
-
-[전월세] 실패 0.8초: HTTP 403 헤더={'X-Trace-Id': '96e0aa4d25d84252', 'Vary': 'Origin', 'X-XSS-Protection': '1; mode=block', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Content-Type': 'application/xml', 'Content-Length': '286', 'Cache-Control': 'no-cache, no-store, max-age=0, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0', 'connection': 'close'} 본문=<?xml version="1.0" encoding="UTF-8"?>
-<OpenAPI_ServiceResponse>
-<cmmMsgHeader>
-  <errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>
-  <returnAuthMsg>등록되지 않은 서비스키</returnAuthMsg>
-  <returnReasonCode>30</returnReasonCode>
-</cmmMsgHeader>
-</OpenAPI_ServiceResponse>
-
+[매매] 1.0초 · 1117바이트
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptDong> </aptDong><aptNm>길음뉴타운경남아너스빌</aptNm><aptSeq>11290-37</aptSeq><bonbun>1015</bonbun><bubun>0000</bubun><buildYear>1999</buildYear><buyerGbn>개인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>116,000</dealAmount><dealDay>29</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 성북구</estateAgentSggNm><excluUseAr>114.63</excluUseAr><floor>10</floor><jibun>1015</jibun><landCd>1</landCd><landLeaseholdGbn>N</landLeaseholdGb
+[전월세] 1.2초 · 918바이트
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptNm>한신</aptNm><aptSeq>11290-19</aptSeq><buildYear>1998</buildYear><contractTerm> </contractTerm><contractType> </contractType><dealDay>2</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><deposit>10,000</deposit><excluUseAr>68.13</excluUseAr><floor>12</floor><jibun>609-1</jibun><monthlyRent>150</monthlyRent><preDeposit> </preDeposit><preMonthlyRent> </preMonthlyRent><roadnm>성북로4길 52</roadnm><roadnmbcd>0</roadnmbcd><roadnmbonbun>00052</roadnmbonbun><roadnmbubun>00000</roadnmbubun><roadnmcd>4121351</roadnmcd><roadnmseq>
 [키 없이] HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
 <OpenAPI_ServiceResponse>
 <cmmMsgHeader>
@@ -25,5 +11,5 @@
 </cmmMsgHeader>
 </OpenAPI_ServiceResponse>
 
-[실행 서버 IP] 20.64.173.178
-[키 형태] 길이 96 · '%' 포함=True · 앞뒤공백=False
+[실행 서버 IP] 172.214.47.32
+[키 형태] 길이 88 · '%' 포함=False · 앞뒤공백=False
