@@ -1,8 +1,8 @@
-== 2026-10-25 00:49 ==
+== 2026-10-25 00:50 ==
 -- 실거래 --
-[매매] 1.0초 · 1117바이트
+[매매] 0.7초 · 1117바이트
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptDong> </aptDong><aptNm>길음뉴타운경남아너스빌</aptNm><aptSeq>11290-37</aptSeq><bonbun>1015</bonbun><bubun>0000</bubun><buildYear>1999</buildYear><buyerGbn>개인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>116,000</dealAmount><dealDay>29</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 성북구</estateAgentSggNm><excluUseAr>114.63</excluUseAr><floor>10</floor><jibun>1015</jibun><landCd>1</landCd><landLeaseholdGbn>N</landLeaseholdGb
-[전월세] 1.0초 · 918바이트
+[전월세] 0.7초 · 918바이트
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptNm>한신</aptNm><aptSeq>11290-19</aptSeq><buildYear>1998</buildYear><contractTerm> </contractTerm><contractType> </contractType><dealDay>2</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><deposit>10,000</deposit><excluUseAr>68.13</excluUseAr><floor>12</floor><jibun>609-1</jibun><monthlyRent>150</monthlyRent><preDeposit> </preDeposit><preMonthlyRent> </preMonthlyRent><roadnm>성북로4길 52</roadnm><roadnmbcd>0</roadnmbcd><roadnmbonbun>00052</roadnmbonbun><roadnmbubun>00000</roadnmbubun><roadnmcd>4121351</roadnmcd><roadnmseq>
 [키 없이] HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
 <OpenAPI_ServiceResponse>
@@ -13,14 +13,14 @@
 </cmmMsgHeader>
 </OpenAPI_ServiceResponse>
 
-[실행 서버 IP] 40.124.101.210
+[실행 서버 IP] 4.246.63.97
 [후보] AptListService4/getSigunguAptList4: '00'
-[후보] AptListService3/getSigunguAptList3: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptListService3/getTotalAptList3: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptListService2/getSigunguAptList: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptListService1/getSigunguAptList: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptBasisInfoServiceV4/getAphusBassInfoV4: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptBasisInfoServiceV3/getAphusBassInfoV3: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptBasisInfoServiceV2/getAphusBassInfoV2: 'NO_OPENAPI_SERVICE_ERROR'
-[후보] AptBasisInfoService1/getAphusBassInfo: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoService4/getAphusBassInfo4: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoService4/getAphusDtlInfo4: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoServiceV4/getAphusBassInfo4: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoServiceV4/getAphusDtlInfoV4: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoService3/getAphusBassInfo3: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoServiceV3/getAphusBassInfo: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoService/getAphusBassInfo: 'NO_OPENAPI_SERVICE_ERROR'
+[후보] AptBasisInfoService4/getAphusBassInfoV4: 'NO_OPENAPI_SERVICE_ERROR'
 [키 형태] 길이 88 · '%' 포함=False · 앞뒤공백=False
