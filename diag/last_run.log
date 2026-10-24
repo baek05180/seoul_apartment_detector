@@ -1,52 +1,21 @@
-== 2026-10-25 00:51 ==
--- 단지정보 --
-단지 목록 3412개
-정보 받을 단지 3412개 (전체 3412개)
-  200개 저장
-  400개 저장
-  600개 저장
-  800개 저장
-  1000개 저장
-  1200개 저장
-  1400개 저장
-  1600개 저장
-  1800개 저장
-  2000개 저장
-  2200개 저장
-  2400개 저장
-  2600개 저장
-  2800개 저장
-  3000개 저장
-  3200개 저장
-  3400개 저장
-이번 실행 3412개 수집 · 아직 남은 단지 0개
--- 금리 --
-주담대 평균금리 4.66% (2026-08) 저장
+== 2026-10-25 01:16 ==
 -- 실거래 --
-종로구 완료 (누적 매매 213건, 전월세 909건)
-중구 완료 (누적 매매 551건, 전월세 2322건)
-용산구 완료 (누적 매매 932건, 전월세 4949건)
-성동구 완료 (누적 매매 1516건, 전월세 8653건)
-광진구 완료 (누적 매매 1983건, 전월세 10310건)
-동대문구 완료 (누적 매매 3399건, 전월세 13860건)
-중랑구 완료 (누적 매매 4822건, 전월세 17893건)
-성북구 완료 (누적 매매 6355건, 전월세 20927건)
-강북구 완료 (누적 매매 6989건, 전월세 22163건)
-도봉구 완료 (누적 매매 8444건, 전월세 24255건)
-노원구 완료 (누적 매매 11734건, 전월세 31238건)
-은평구 완료 (누적 매매 13151건, 전월세 35157건)
-서대문구 완료 (누적 매매 14202건, 전월세 37784건)
-마포구 완료 (누적 매매 15001건, 전월세 42431건)
-양천구 완료 (누적 매매 16010건, 전월세 46887건)
-강서구 완료 (누적 매매 17952건, 전월세 52942건)
-구로구 완료 (누적 매매 19788건, 전월세 58014건)
-금천구 완료 (누적 매매 20390건, 전월세 59408건)
-영등포구 완료 (누적 매매 21523건, 전월세 63924건)
-동작구 완료 (누적 매매 22494건, 전월세 67335건)
-관악구 완료 (누적 매매 23515건, 전월세 69803건)
-서초구 완료 (누적 매매 24466건, 전월세 75560건)
-강남구 완료 (누적 매매 25552건, 전월세 84336건)
-송파구 완료 (누적 매매 27294건, 전월세 91897건)
-강동구 완료 (누적 매매 28723건, 전월세 97521건)
-단지정보 연결: 369/8617
-저장: /home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/../site/data/summary.json · 단지·평형 8617개 · 최신 계약일 2026-10-23 · 실패 0건
+[매매] 0.9초 · 1117바이트
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptDong> </aptDong><aptNm>길음뉴타운경남아너스빌</aptNm><aptSeq>11290-37</aptSeq><bonbun>1015</bonbun><bubun>0000</bubun><buildYear>1999</buildYear><buyerGbn>개인</buyerGbn><cdealDay> </cdealDay><cdealType> </cdealType><dealAmount>116,000</dealAmount><dealDay>29</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><dealingGbn>중개거래</dealingGbn><estateAgentSggNm>서울 성북구</estateAgentSggNm><excluUseAr>114.63</excluUseAr><floor>10</floor><jibun>1015</jibun><landCd>1</landCd><landLeaseholdGbn>N</landLeaseholdGb
+[전월세] 1.5초 · 918바이트
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header><body><items><item><aptNm>한신</aptNm><aptSeq>11290-19</aptSeq><buildYear>1998</buildYear><contractTerm> </contractTerm><contractType> </contractType><dealDay>2</dealDay><dealMonth>9</dealMonth><dealYear>2026</dealYear><deposit>10,000</deposit><excluUseAr>68.13</excluUseAr><floor>12</floor><jibun>609-1</jibun><monthlyRent>150</monthlyRent><preDeposit> </preDeposit><preMonthlyRent> </preMonthlyRent><roadnm>성북로4길 52</roadnm><roadnmbcd>0</roadnmbcd><roadnmbonbun>00052</roadnmbonbun><roadnmbubun>00000</roadnmbubun><roadnmcd>4121351</roadnmcd><roadnmseq>
+[키 없이] HTTP 403: <?xml version="1.0" encoding="UTF-8"?>
+<OpenAPI_ServiceResponse>
+<cmmMsgHeader>
+  <errMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</errMsg>
+  <returnAuthMsg>등록되지 않은 서비스키</returnAuthMsg>
+  <returnReasonCode>30</returnReasonCode>
+</cmmMsgHeader>
+</OpenAPI_ServiceResponse>
+
+[실행 서버 IP] 20.168.7.234
+[원문] AptBasisInfoServiceV5/getAphusBassInfoV5 A10045001: {"response":{"body":{"item":{"kaptCode":"A10045001","kaptName":"신당푸르지오","kaptAddr":"서울특별시 중구 신당동 850 신당푸르지오","codeSaleNm":"분양","codeHeatNm":"개별난방","kaptTarea":83067.67,"kaptDongCnt":"9","kaptdaCnt":461.0,"kaptBcompany":"대우건설(주)","kaptAcompany":"신당동 동화주택 주택재개발조합","kaptTel":"0222541020","kaptUrl":" ","codeAptNm":"아파트","doroJuso":"서울특별시 중구 다산로36길 110","codeMgrNm":"위탁관리","codeHallNm":"계단식","kaptUsedate":"20051228","kaptFax":"0222541021","hoCnt":461,"kaptMarea":54649.09,"kaptMparea60":40.0,"kaptMparea85":266.0,"kaptMparea135":81.0,"kaptMparea136":74.0,"privArea":"44882.36","bjdCode":"1114016200","kaptTopFloor":23,"ktownFlrNo":23,"kaptBaseFloor":3,"kaptdEcntp":12,"zipcode":"04587"}},"header":{"resultCode":"00","resultMsg":"NORMAL SERVICE."}}}
+[원문] AptBasisInfoServiceV5/getAphusBassInfoV5 A10027875: {"response":{"body":{"item":{"kaptCode":"A10027875","kaptName":"괴정 경성스마트W아파트","kaptAddr":"부산광역시 사하구 괴정동 258 괴정 경성스마트W아파트","codeSaleNm":"분양","codeHeatNm":"개별난방","kaptTarea":15040.163,"kaptDongCnt":"3","kaptdaCnt":182.0,"kaptBcompany":"(주)경성리츠","kaptAcompany":"(주)경성리츠","kaptTel":"0512949363","kaptUrl":" ","codeAptNm":"주상복합","doroJuso":"부산광역시 사하구 낙동대로 180","codeMgrNm":"자치관리","codeHallNm":"혼합식","kaptUsedate":"20150806","kaptFax":"0512949364","hoCnt":182,"kaptMarea":15040.163,"kaptMparea60":182.0,"kaptMparea85":0.0,"kaptMparea135":0.0,"kaptMparea136":0.0,"privArea":"9014.0338","bjdCode":"2638010100","kaptTopFloor":15,"ktownFlrNo":15,"kaptBaseFloor":2,"kaptdEcntp":5,"zipcode":"49338"}},"header":{"resultCode":"00","resultMsg":"NORMAL SERVICE."}}}
+[원문] AptBasisInfoServiceV5/getAphusDtlInfoV5 A10045001: {"response":{"body":{"item":{"kaptCode":"A10045001","kaptName":"신당푸르지오","codeMgr":"위탁관리","kaptMgrCnt":"6","kaptCcompany":"서림주택관리(주)","codeSec":"위탁관리","kaptdScnt":"6","kaptdSecCom":"(주)국보","codeClean":"위탁관리","kaptdClcnt":"5","codeGarbage":"음식물쓰레기종량제","codeDisinf":"위탁관리","kaptdDcnt":"12","disposalType":"도포식,분무식,기구부착식,독이식","codeStr":"철근콘크리트구조","kaptdEcapa":"2000","codeEcon":"단일계약","codeEmgr":"상주선임","codeFalarm":"R형","codeWsupply":"부스타방식","codeElev":"위탁관리","kaptdEcnt":12,"kaptdPcnt":"0","kaptdPcntu":"652","codeNet":"무","kaptdCccnt":"138","welfareFacility":"관리사무소, 노인정, 어린이놀이터, 자전거보관소","kaptdWtimebus":"5분이내","subwayLine":"5호선, 6호선","subwayStation":"청구","kaptdWtimesub":"5~10�
+[원문] AptBasisInfoServiceV5/getAphusDtlInfoV5 A10027875: {"response":{"body":{"item":{"kaptCode":"A10027875","kaptName":"괴정 경성스마트W아파트","codeMgr":"자치관리","kaptMgrCnt":"2","kaptCcompany":null,"codeSec":"자치관리(직영)","kaptdScnt":"2","kaptdSecCom":null,"codeClean":"자치관리","kaptdClcnt":"1","codeGarbage":"차량수거방식","codeDisinf":"위탁관리","kaptdDcnt":"5","disposalType":"분무식","codeStr":"철근콘크리트구조","kaptdEcapa":"1310","codeEcon":"단일계약","codeEmgr":"위탁선임","codeFalarm":"R형","codeWsupply":"부스타방식","codeElev":"위탁관리","kaptdEcnt":5,"kaptdPcnt":"0","kaptdPcntu":"162","codeNet":"유","kaptdCccnt":"20","welfareFacility":"관리사무소","kaptdWtimebus":"5분이내","subwayLine":"1호선","subwayStation":null,"kaptdWtimesub":"5~10분이내","convenientFacility":"관공서(괴정3동치안센타) 대형상가(뉴코아 아울렛) 기타(괴정시장)"
+[키 형태] 길이 88 · '%' 포함=False · 앞뒤공백=False
