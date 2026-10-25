@@ -201,9 +201,17 @@ def main() -> int:
         save(cache)
         return 0
 
+    def has_dtl(c):
+        return c.get("dtl") or (c.get("v") == SCHEMA and c.get("src") != "excel" and "subLine" in c)
+
+    def has_base(c):
+        return c.get("v") == SCHEMA and c.get("addr") and c.get("hh")
+
+    # 엑셀로 기본정보가 채워진 단지는 상세정보(지하철·주차)만 받음
     todo = [k for k, c in cx.items()
-            if c.get("v") != SCHEMA or not c.get("addr")
-            or (today - dt.date.fromisoformat(c["fetched"])).days >= INFO_MAX_AGE]
+            if not has_base(c) or not has_dtl(c)
+            or (today - dt.date.fromisoformat(c.get("fetched") or today.isoformat())).days >= INFO_MAX_AGE]
+    todo.sort(key=lambda k: bool(has_base(cx[k])))   # 기본정보 없는 단지 먼저
     print(f"정보 받을 단지 {len(todo)}개 (전체 {len(cx)}개)")
     lock = threading.Lock()
     done = 0
@@ -214,11 +222,16 @@ def main() -> int:
     def work(kc):
         if time.time() > budget or auth_fail or misses[0] >= 25:
             return kc, None
+        base_ok = has_base(cx[kc])
         for attempt in range(3):           # 너무 빨리 부르면 빈 응답이 오기도 해서 재시도
-            b, _ = call(bas_ep, key, kaptCode=kc)
+            b = None
+            if not base_ok:
+                bb, _ = call(bas_ep, key, kaptCode=kc)
+                b = bb[0] if bb and bb[0].get("kaptAddr") else None
             d, _ = call(dtl_ep, key, kaptCode=kc)
-            if b and b[0].get("kaptAddr"):
-                return kc, (b[0], d[0] if d else {})
+            d = d[0] if d else None
+            if (base_ok or b) and d:
+                return kc, (b, d)
             time.sleep(1.5 * (attempt + 1))
         return kc, None
 
@@ -240,16 +253,19 @@ def main() -> int:
             b, d = res
             with lock:
                 c = cx[kc]
-                umd, jb = split_addr(b.get("kaptAddr", ""), c.get("gu", ""))
-                hh = to_int(b.get("kaptdaCnt"))
+                if b:
+                    umd, jb = split_addr(b.get("kaptAddr", ""), c.get("gu", ""))
+                    c.update({
+                        "addr": b.get("kaptAddr", ""), "road": b.get("doroJuso", ""),
+                        "umd": umd, "jibun": jb,
+                        "hh": to_int(b.get("kaptdaCnt")), "dong": to_int(b.get("kaptDongCnt")) or None,
+                        "used": (b.get("kaptUsedate") or "")[:8], "builder": b.get("kaptBcompany", ""),
+                        "heat": b.get("codeHeatNm", ""), "src": "api",
+                    })
+                hh = c.get("hh") or 0
                 pk = to_int(d.get("kaptdPcnt")) + to_int(d.get("kaptdPcntu"))
                 c.update({
-                    "addr": b.get("kaptAddr", ""), "road": b.get("doroJuso", ""),
-                    "umd": umd, "jibun": jb,
-                    "hh": hh, "dong": to_int(b.get("kaptDongCnt")) or None,
-                    "used": (b.get("kaptUsedate") or "")[:8], "builder": b.get("kaptBcompany", ""),
-                    "heat": b.get("codeHeatNm", ""),
-                    "pk": round(pk / hh, 2) if hh and pk else None,
+                    "pk": round(pk / hh, 2) if hh and pk else c.get("pk"), "dtl": True,
                     "subLine": d.get("subwayLine", ""), "subSt": d.get("subwayStation", ""),
                     "subTime": d.get("kaptdWtimesub", ""), "busTime": d.get("kaptdWtimebus", ""),
                     "edu": (d.get("educationFacility") or "")[:200],
@@ -264,8 +280,9 @@ def main() -> int:
     save(cache)
     if misses[0] >= 25:
         print("빈 응답이 계속돼 멈춤(하루 호출량 소진 추정) → 다음 실행에서 이어서 받음")
-    left = sum(1 for c in cx.values() if c.get("v") != SCHEMA or not c.get("addr"))
-    print(f"이번 실행 {done}개 수집 · 아직 남은 단지 {left}개")
+    left_b = sum(1 for c in cx.values() if not has_base(c))
+    left_d = sum(1 for c in cx.values() if not has_dtl(c))
+    print(f"이번 실행 {done}개 수집 · 기본정보 남은 단지 {left_b}개 · 지하철 등 상세정보 남은 단지 {left_d}개")
     return 0
 
 

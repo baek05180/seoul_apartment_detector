@@ -53,7 +53,8 @@ jobs:
           {
             echo "== $(TZ=Asia/Seoul date +'%Y-%m-%d %H:%M') =="
             if [ "$PROBE" != "1" ]; then
-              echo "-- 단지정보 --"; python scripts/fetch_complex.py || echo "(단지정보 단계 실패, 계속 진행)"
+              echo "-- 단지정보(엑셀) --"; pip install -q openpyxl && python scripts/fetch_kapt_excel.py || echo "(엑셀 단계 실패, 계속 진행)"
+              echo "-- 단지정보(API) --"; python scripts/fetch_complex.py || echo "(단지정보 단계 실패, 계속 진행)"
               echo "-- 금리 --";     python scripts/fetch_rate.py    || echo "(금리 단계 실패, 계속 진행)"
             fi
             echo "-- 실거래 --";     python scripts/fetch_molit.py
