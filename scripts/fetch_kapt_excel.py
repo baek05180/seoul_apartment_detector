@@ -36,7 +36,7 @@ def download() -> bytes:
 def rows_from(data: bytes):
     if data[:2] == b"PK":  # xlsx
         import openpyxl
-        wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+        wb = openpyxl.load_workbook(io.BytesIO(data), data_only=True)  # read_only는 이 파일에서 행을 못 읽음
         ws = wb.worksheets[0]
         for row in ws.iter_rows(values_only=True):
             yield [("" if c is None else str(c).strip()) for c in row]
@@ -52,11 +52,14 @@ def main() -> int:
         cache = {"listFetched": None, "complexes": {}}
     today = dt.datetime.now(KST).date()
     xf = cache.get("excelFetched")
-    if xf and (today - dt.date.fromisoformat(xf)).days < MAX_AGE_DAYS and os.environ.get("FORCE") != "1":
-        print(f"엑셀은 {xf}에 받아서 건너뜀")
-        return 0
-
-    data = download()
+    if len(sys.argv) > 1:                       # 직접 받은 파일: python fetch_kapt_excel.py 파일.xlsx
+        with open(sys.argv[1], "rb") as f:
+            data = f.read()
+    else:
+        if xf and (today - dt.date.fromisoformat(xf)).days < MAX_AGE_DAYS and os.environ.get("FORCE") != "1":
+            print(f"엑셀은 {xf}에 반영돼서 건너뜀")
+            return 0
+        data = download()
     it = rows_from(data)
     header, col = None, {}
     for row in it:
