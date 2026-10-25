@@ -1,4 +1,4 @@
-== 2026-10-25 10:18 ==
+== 2026-10-25 14:47 ==
 -- 단지정보(엑셀) --
 
 [notice] A new release of pip is available: 26.2.1 -> 26.2.2
@@ -37,3 +37,7 @@
 강동구 완료 (누적 매매 28720건, 전월세 97528건)
 단지정보 연결: 6103/8614
 저장: /home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/../site/data/summary.json · 단지·평형 8614개 · 최신 계약일 2026-10-23 · 실패 0건
+-- 좌표·지하철역 --
+좌표 조회할 주소 4559개 (저장된 주소 0개)
+이번에 3222개 조회 · 남은 주소 1337개
+좌표 붙은 단지·평형 6151/8614
