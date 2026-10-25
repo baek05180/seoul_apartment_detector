@@ -102,6 +102,38 @@ tr.dir td{color:var(--sub)}
 a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
 .more{display:block;margin:16px auto 0}
 [hidden]{display:none!important}
+.card{position:relative}
+.cmp-btn{float:right;margin:0 0 6px 10px;font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--sub);border-radius:999px;padding:3px 10px;cursor:pointer}
+.cmp-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.cmp-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 10px 8px 18px;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:14px;max-width:calc(100% - 32px)}
+.cmp-bar .btn{background:transparent;color:var(--bg);border-color:rgba(255,255,255,.35)}
+.cmp-bar .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.cmp-bar .btn:disabled{opacity:.45;cursor:not-allowed}
+.cmp-msg{font-size:12px;opacity:.8}
+.cmp-modal{position:fixed;inset:0;z-index:30;background:rgba(10,14,20,.5);display:flex;align-items:center;justify-content:center;padding:16px}
+.cmp-sheet{background:var(--panel);border-radius:16px;width:min(1040px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.cmp-top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.cmp-top b{font-size:17px;white-space:nowrap}
+.cmp-top .btn{white-space:nowrap}
+.cmp-top .btn{margin-left:auto}
+.cmp-scroll{overflow:auto;padding:4px 18px 18px}
+.cmp-table{max-width:none;width:100%;border-collapse:collapse;font-size:14px}
+.cmp-table th,.cmp-table td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left;min-width:150px}
+.cmp-table tbody th{color:var(--sub);font-weight:600;min-width:130px;white-space:nowrap;position:sticky;left:0;background:var(--panel)}
+.cmp-table thead th{position:sticky;top:0;background:var(--panel);z-index:1}
+.cmp-table tr.sub th,.cmp-table tr.sub td{font-size:13px;padding-top:4px;padding-bottom:4px}
+.cmp-table td.best{color:var(--ok);font-weight:800}
+.cmp-name{font-size:15px;font-weight:800;color:var(--ink)}
+.link-btn{font:inherit;font-size:12px;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
+.okc{color:var(--ok);font-weight:700} .noc{color:var(--no);font-weight:700}
+.wrap{padding-bottom:90px}
+@media (max-width:640px){
+  .cmp-top .muted{display:none}
+  .cmp-modal{padding:8px}
+  .cmp-scroll{padding:4px 10px 14px}
+  .cmp-table th,.cmp-table td{min-width:120px;padding:7px 8px;font-size:13px}
+  .cmp-table tbody th{min-width:92px;white-space:normal}
+}
 .empty{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:28px;text-align:center;color:var(--sub)}
 @media (max-width:640px){
   .fresh{grid-template-columns:1fr}
@@ -209,6 +241,18 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
   <div class="count" id="count"></div>
   <div class="list" id="list"></div>
   <button class="btn more" id="more" type="button" hidden>더 보기</button>
+</div>
+
+<div class="cmp-bar" id="cmpBar" hidden>
+  <span id="cmpCount"></span><span class="cmp-msg" id="cmpMsg"></span>
+  <button class="btn" id="cmpClear" type="button">비우기</button>
+  <button class="btn primary" id="cmpOpen" type="button">비교하기</button>
+</div>
+<div class="cmp-modal" id="cmpModal" hidden>
+  <div class="cmp-sheet" role="dialog" aria-label="단지 비교">
+    <div class="cmp-top"><b>단지 비교</b><span class="muted">초록색이 가장 유리한 값이에요</span><button class="btn" id="cmpClose" type="button">닫기</button></div>
+    <div class="cmp-scroll" id="cmpBody"></div>
+  </div>
 </div>
 <script src="rules.js"></script>
 <script src="loan.js"></script>

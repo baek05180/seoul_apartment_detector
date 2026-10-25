@@ -278,7 +278,9 @@
       it.st ? `${esc(it.st)}${it.sw ? ` ${esc(it.sw)}` : ""}` : null,
       it.ht ? esc(it.ht) : null,
     ].filter(Boolean).join(" · ");
+    const key = keyOf(it), on = cmp.has(key);
     return `<article class="card">
+      <button type="button" class="cmp-btn${on ? " on" : ""}" data-key="${esc(key)}" aria-pressed="${on}">${on ? "✓ 비교함에 담김" : "+ 비교 담기"}</button>
       <div class="top">
         <div>
           <div class="name">${esc(it.n)}${it.sc != null ? `<span class="score" title="${esc(scoreTip(it))}">${it.sc}점</span>` : ""}</div>
@@ -313,8 +315,88 @@
     </article>`;
   }
 
+  // ------------------------------------------------ 단지 비교
+  const CMP_MAX = 4;
+  const keyOf = (it) => `${it.g}|${it.d}|${it.n}|${it.a}`;
+  const cmp = new Set(store.get("compare") || []);
+  const saveCmp = () => store.set("compare", [...cmp]);
+
+  $("list").addEventListener("click", (e) => {
+    const b = e.target.closest(".cmp-btn"); if (!b) return;
+    const k = b.dataset.key;
+    if (cmp.has(k)) cmp.delete(k);
+    else if (cmp.size >= CMP_MAX) { alertBar(`비교는 최대 ${CMP_MAX}곳까지 담을 수 있어요`); return; }
+    else cmp.add(k);
+    saveCmp(); render();
+  });
+  function alertBar(msg) { const n = $("cmpMsg"); n.textContent = msg; setTimeout(() => { n.textContent = ""; }, 2500); }
+
+  function renderCmpBar() {
+    const bar = $("cmpBar");
+    bar.hidden = cmp.size === 0;
+    $("cmpCount").textContent = `비교함 ${cmp.size}/${CMP_MAX}`;
+    $("cmpOpen").disabled = cmp.size < 2;
+  }
+  $("cmpClear").addEventListener("click", () => { cmp.clear(); saveCmp(); render(); });
+  $("cmpClose").addEventListener("click", () => { $("cmpModal").hidden = true; document.body.style.overflow = ""; });
+  $("cmpModal").addEventListener("click", (e) => { if (e.target.id === "cmpModal") $("cmpClose").click(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("cmpModal").hidden) $("cmpClose").click(); });
+  $("cmpOpen").addEventListener("click", openCompare);
+  $("cmpBody").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-remove]"); if (!b) return;
+    cmp.delete(b.dataset.remove); saveCmp(); render();
+    cmp.size >= 2 ? openCompare() : $("cmpClose").click();
+  });
+
+  function openCompare() {
+    const list = filtered();                         // 점수 계산(가격 점수는 현재 필터 기준)
+    const items = [...cmp].map((k) => ROWS.find((r) => keyOf(r) === k)).filter(Boolean);
+    const missing = items.filter((it) => !list.includes(it));
+    if (missing.length) scoreAll(list.concat(missing));
+    const W = window.RULES.work.name, year = new Date(META.generatedAt).getFullYear();
+    // [행 이름, 값 함수, 표시 함수, 좋은 방향(+1 클수록, -1 작을수록, 0 비교 안 함)]
+    const rows = [
+      ["내 점수", (x) => x.sc, (v) => v == null ? "–" : `<b>${v}점</b>`, 1],
+      ...WEIGHTS.map(([k, l]) => [`└ ${l}`, (x) => x.part?.[k], (v) => v == null ? "정보 없음" : `${Math.round(v)}점`, 1]),
+      ["가격(최근 3개월 중간값)", (x) => x.price, won, -1],
+      ["㎡당 가격", (x) => Math.round(x.price / x.a), won, -1],
+      ["전용면적", (x) => x.a, (v) => `${v}㎡ (${pyeong(v)}평)`, 0],
+      ["준공", (x) => x.b, (v) => v ? `${v}년 (${year - v}년차)` : "–", 1],
+      ["세대수", (x) => x.hh, (v) => v ? `${v.toLocaleString()}세대` : "–", 1],
+      ["동수", (x) => x.dc, (v) => v ? `${v}개동` : "–", 0],
+      ["세대당 주차", (x) => x.pk, (v) => v ? `${v}대` : "–", 1],
+      ["난방", (x) => x.ht, (v) => v ? esc(v) : "–", 0],
+      ["가까운 지하철역", (x) => x.walk, (v, x) => x.sn ? `${esc(x.sn)} 도보 약 ${v}분` : "–", -1],
+      [`${W}까지 직선거리`, (x) => x.wk, (v) => v != null ? `${v.toFixed(1)}km` : "–", -1],
+      ["최근 거래", (x) => x.ts[0][0], (v, x) => `${v}<br><span class="muted">${won(x.ts[0][1])} · ${x.ts[0][2]}층</span>`, 0],
+      ["3개월 거래 건수", (x) => x.c3, (v) => `${v}건`, 1],
+      ["직전 3개월 대비", (x) => x.tr, (v) => v == null ? "–" : `<span class="${v >= 0 ? "up" : "down"}">${v >= 0 ? "▲" : "▼"} ${Math.abs(v).toFixed(1)}%</span>`, 0],
+      ["전세 중간값", (x) => x.j, won, 0],
+      ["전세가율", (x) => x.jr, (v) => v != null ? `${v}%` : "–", 0],
+    ];
+    if (profile()) rows.push(
+      ["매수 가능 여부", (x) => x.L?.margin, (v) => v == null ? "–" : v >= 0 ? `<span class="okc">가능 · ${won(v)} 여유</span>` : `<span class="noc">${won(-v)} 부족</span>`, 1],
+      ["필요 자기자금", (x) => x.L?.needCash, won, -1],
+      ["최대 대출 시 월 상환", (x) => x.L?.monthly, (v) => v == null ? "–" : won(Math.round(v)), -1],
+    );
+    const head = `<tr><th></th>${items.map((x) => `<th><div class="cmp-name">${esc(x.n)}</div><div class="muted">${esc(x.g)} ${esc(x.d)} · ${x.a}㎡</div>
+      <button type="button" class="link-btn" data-remove="${esc(keyOf(x))}">빼기</button></th>`).join("")}</tr>`;
+    const body = rows.map(([label, get, fmt, dir]) => {
+      const vals = items.map(get);
+      const nums = vals.filter((v) => typeof v === "number");
+      const best = dir && nums.length > 1 ? (dir > 0 ? Math.max(...nums) : Math.min(...nums)) : null;
+      const allSame = nums.length > 1 && nums.every((v) => v === nums[0]);
+      return `<tr class="${label.startsWith("└") ? "sub" : ""}"><th>${label}</th>${items.map((x, i) =>
+        `<td class="${best != null && !allSame && vals[i] === best ? "best" : ""}">${fmt(vals[i], x)}</td>`).join("")}</tr>`;
+    }).join("");
+    $("cmpBody").innerHTML = `<table class="cmp-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+    $("cmpModal").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
   function render() {
     if (!META) return;
+    renderCmpBar();
     const list = filtered();
     const okN = list.filter((x) => x.L?.ok).length;
     $("count").textContent = `조건에 맞는 단지·평형 ${list.length.toLocaleString()}개` +
