@@ -61,7 +61,7 @@
   }
 
   // ------------------------------------------------ 대출 계산기
-  const CFIELDS = ["income","cash","debt","rtype","term","radj","first","newlywed"];
+  const CFIELDS = ["income","cash","corp","corpRate","corpTerm","debt","rtype","term","radj","first","newlywed"];
   const savedC = store.get("calc") || {};
   CFIELDS.forEach((f) => {
     const el = $(f);
@@ -76,7 +76,10 @@
   function profile() {
     const n = (id) => parseFloat($(id).value);
     if (!(n("income") > 0) || !(n("cash") >= 0) || $("cash").value === "") return null;
+    const C = window.RULES.corpDefault;
     return { income: n("income"), cash: n("cash"), debt: n("debt") || 0, rtype: $("rtype").value,
+             corp: n("corp") || 0, corpRate: Number.isFinite(n("corpRate")) ? n("corpRate") : C.rate,
+             corpTerm: n("corpTerm") > 0 ? n("corpTerm") : C.term,
              term: +$("term").value, first: $("first").checked, newlywed: $("newlywed").checked };
   }
   const rate = () => RATE.base + (parseFloat($("radj").value) || 0);
@@ -99,21 +102,21 @@
       $("calcOut").innerHTML = `
         <div class="stat"><div class="k">예상 대출금리</div><div class="v">${rateTxt}</div></div>
         <div class="stat"><div class="k">소득 기준(DSR) 최대 대출</div><div class="v">${won(Math.floor(d.amount / 100) * 100)}</div><div class="k">심사용 금리 ${d.stress.toFixed(2)}% 적용</div></div>
-        <div class="stat"><div class="k">살 수 있는 최대 집값 (84㎡ 기준)</div><div class="v">약 ${won(mp)}</div><div class="k">대출 ${won(ex.maxLoan)} · 부대비용 ${won(ex.costs)}</div></div>
-        <div class="stat"><div class="k">그때 월 상환액 (${p.term}년 원리금균등)</div><div class="v">${won(Math.round(ex.monthly))}</div><div class="k">월 소득의 ${Math.round(ex.monthlyRatio * 100)}%</div></div>`;
+        <div class="stat"><div class="k">살 수 있는 최대 집값 (84㎡ 기준)</div><div class="v">약 ${won(mp)}</div><div class="k">은행 대출 ${won(ex.maxLoan)}${p.corp ? ` · 사내대출 ${won(p.corp)}` : ""} · 부대비용 ${won(ex.costs)}</div></div>
+        <div class="stat"><div class="k">예상 월 상환액 (원리금균등)</div><div class="v">${won(Math.round(ex.monthly))}</div><div class="k">${p.corp ? `은행 ${won(Math.round(ex.bankMonthly))}(${p.term}년) + 사내 ${won(Math.round(ex.corpMonthly))}(${p.corpTerm}년 ${p.corpRate}%) · ` : ""}월 소득의 ${Math.round(ex.monthlyRatio * 100)}%</div></div>`;
       $("calcHint").textContent = `최대 약 ${won(mp)} · 월 ${won(Math.round(ex.monthly))} 상환`;
     }
     const R = window.RULES;
     $("calcNote").innerHTML = `
       예상 금리 = ${esc(RATE.source)} ${esc(RATE.ym)} 평균 ${RATE.base.toFixed(2)}% + 직접 입력한 가감. 실제 금리는 은행·신용·우대조건에 따라 달라져요.<br>
       대출 한도 = ① LTV ${R.ltv.normal * 100}%(생애최초 ${R.ltv.firstHome * 100}%) ② 집값별 상한(15억 이하 6억 · 25억 이하 4억 · 초과 2억) ③ DSR ${R.dsr * 100}%(심사 때 금리에 스트레스 ${R.stressRate}%p × 변동 100% · 혼합 80% · 주기형 40% 가산) 중 가장 작은 값.<br>
-      필요 자기자금은 대출을 최대로 받는다고 가정한 값이에요(여유가 있으면 덜 빌려 월 상환을 줄일 수 있어요). 부대비용 = 취득세·지방교육세(·85㎡ 초과 농특세) + 중개보수 상한(부가세 포함) + 기타 ${R.etcCostRate * 100}%. 서울 아파트는 토지거래허가구역이라 실거주 의무가 있어요. 입력값은 이 브라우저에만 저장돼요.`;
+      사내대출은 DSR(소득 기준 한도)에는 넣지 않고 매수 자금에 더하며, 이자·원금은 월 상환액에 포함해요(금리·기간을 비우면 ${R.corpDefault.rate}%·${R.corpDefault.term}년으로 계산). 필요 자기자금은 은행 대출을 최대로 받는다고 가정한 값이에요(여유가 있으면 덜 빌려 월 상환을 줄일 수 있어요). 부대비용 = 취득세·지방교육세(·85㎡ 초과 농특세) + 중개보수 상한(부가세 포함) + 기타 ${R.etcCostRate * 100}%. 서울 아파트는 토지거래허가구역이라 실거주 의무가 있어요. 입력값은 이 브라우저에만 저장돼요.`;
   }
 
   // ------------------------------------------------ 나만의 점수
   const WEIGHTS = [
     ["price", "가격(쌀수록)", 3], ["work", "여의도역 거리", 3], ["walk", "지하철역 도보", 3],
-    ["hh", "세대수", 2], ["age", "신축", 2], ["pk", "주차", 1],
+    ["hh", "세대수", 2], ["age", "신축", 2], ["pk", "주차", 1], ["deal", "거래량", 2],
   ];
   const LEVEL = ["안 봄", "조금", "보통", "중요", "매우", "최우선"];
   const savedW = store.get("weights") || {};
@@ -146,6 +149,7 @@
         hh: it.hh ? lin(Math.log10(it.hh), Math.log10(3000), 2) : 0,   // 세대수 정보 없음 = 대부분 150세대 미만 소규모 → 0점
         age: it.b ? lin(year - it.b, 5, 35) : null,
         pk: lin(it.pk, 1.5, 0.5),
+        deal: lin(it.c3, 10, 1),                // 최근 3개월 매매 1건 0점 · 10건 이상 100점
       };
       let sum = 0, ws = 0;
       for (const [k, v] of Object.entries(part)) if (v != null && w[k]) { sum += v * w[k]; ws += w[k]; }
@@ -172,7 +176,7 @@
         <div><div class="k">데이터 수집</div><div class="v">${gen.toLocaleString("ko-KR", {month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"})}</div></div>
         <div><div class="k">가장 최근 계약일</div><div class="v">${m.latestDeal}</div></div>
         <div><div class="k">매매 신고</div><div class="v">${s.tradeUsed.toLocaleString()}건</div></div>
-        <div><div class="k">해제 제외 / 그중 직거래</div><div class="v">${s.cancelled.toLocaleString()} / ${s.direct.toLocaleString()}건</div></div>
+        <div><div class="k">해제 제외 / 직거래</div><div class="v">${s.cancelled.toLocaleString()}건 / ${s.direct.toLocaleString()}건</div></div>
       </div>
       <div class="bars" aria-label="월별 매매 신고 건수">${bars}</div>
       <div class="note">실거래는 계약 후 30일 안에 신고돼서, 빗금 친 최근 두 달은 아직 신고가 덜 들어온 상태예요. 표시 가격은 실제 계약가이고 지금 매물의 호가가 아니에요.${m.failures.length ? ` · 일부 수집 실패 ${m.failures.length}건` : ""}</div>`;
@@ -182,8 +186,10 @@
   // ------------------------------------------------ 구 선택
   function renderGu() {
     $("gu").innerHTML = GUS.map((g) => `<button type="button" aria-pressed="${selGu.has(g)}" data-g="${g}">${g}</button>`).join("");
-    $("guSummary").textContent = `구 선택: ${selGu.size ? [...selGu].join(", ") : "서울 전체"} ▾`;
+    $("guSummary").textContent = `구 선택: ${!selGu.size || selGu.size === GUS.length ? "서울 전체" : [...selGu].join(", ")} ▾`;
   }
+  $("guAll").addEventListener("click", () => { GUS.forEach((g) => selGu.add(g)); store.set("gu", [...selGu]); renderGu(); shown = PAGE; render(); });
+  $("guNone").addEventListener("click", () => { selGu.clear(); store.set("gu", []); renderGu(); shown = PAGE; render(); });
   $("gu").addEventListener("click", (e) => {
     const g = e.target.dataset.g; if (!g) return;
     selGu.has(g) ? selGu.delete(g) : selGu.add(g);
@@ -255,8 +261,8 @@
       ? `<span class="verdict">매수 가능</span> · 자기자금 ${won(L.margin)} 여유`
       : `<span class="verdict">자기자금 ${won(-L.margin)} 부족</span>`;
     return `<div class="loan ${L.ok ? "ok" : "no"}">${head}${L.policy ? '<span class="tag blue">정책대출 검토 대상</span>' : ""}
-      <div class="sub">최대 대출 ${won(L.maxLoan)}(${BIND[L.bind]} 기준) · 부대비용 ${won(L.costs)} · 필요 자기자금 ${won(L.needCash)}
-      · 최대 대출 시 월 상환 <b>${won(Math.round(L.monthly))}</b>${L.monthlyRatio != null ? ` (월소득의 ${Math.round(L.monthlyRatio * 100)}%)` : ""}</div></div>`;
+      <div class="sub">최대 대출 ${won(L.maxLoan)}(${BIND[L.bind]} 기준) · 부대비용 ${won(L.costs)} · 필요 자금 ${won(L.needCash)}
+      · 예상 월 상환 <b>${won(Math.round(L.monthly))}</b>${L.corpMonthly ? ` (은행 ${won(Math.round(L.bankMonthly))} + 사내 ${won(Math.round(L.corpMonthly))})` : ""}${L.monthlyRatio != null ? ` · 월소득의 ${Math.round(L.monthlyRatio * 100)}%` : ""}</div></div>`;
   }
 
   function scoreTip(it) {
@@ -307,7 +313,7 @@
       </details>
       <div class="links">
         ${it.lat ? `<a href="https://map.kakao.com/link/by/traffic/${encodeURIComponent(it.n.replace(/[,/]/g, " "))},${it.lat},${it.lng}/${encodeURIComponent(window.RULES.work.name)},${window.RULES.work.lat},${window.RULES.work.lng}" target="_blank" rel="noopener"><b>${esc(window.RULES.work.name)}까지 대중교통 길찾기</b></a>` : ""}
-        <a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">네이버지도</a>
+        <a href="https://map.naver.com/p/search/${encodeURIComponent(it.n.replace(/\(.*?\)/g, "").trim())}" target="_blank" rel="noopener">네이버지도</a>
         <a href="https://m.land.naver.com/search/result/${q}" target="_blank" rel="noopener">네이버부동산 호가</a>
         <a href="https://kbland.kr/" target="_blank" rel="noopener">KB부동산</a>
         <a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">국토부 실거래</a>
@@ -376,8 +382,8 @@
     ];
     if (profile()) rows.push(
       ["매수 가능 여부", (x) => x.L?.margin, (v) => v == null ? "–" : v >= 0 ? `<span class="okc">가능 · ${won(v)} 여유</span>` : `<span class="noc">${won(-v)} 부족</span>`, 1],
-      ["필요 자기자금", (x) => x.L?.needCash, won, -1],
-      ["최대 대출 시 월 상환", (x) => x.L?.monthly, (v) => v == null ? "–" : won(Math.round(v)), -1],
+      ["필요 자금(자기자금+사내대출)", (x) => x.L?.needCash, won, -1],
+      ["예상 월 상환액", (x) => x.L?.monthly, (v) => v == null ? "–" : won(Math.round(v)), -1],
     );
     const head = `<tr><th></th>${items.map((x) => `<th><div class="cmp-name">${esc(x.n)}</div><div class="muted">${esc(x.g)} ${esc(x.d)} · ${x.a}㎡</div>
       <button type="button" class="link-btn" data-remove="${esc(keyOf(x))}">빼기</button></th>`).join("")}</tr>`;

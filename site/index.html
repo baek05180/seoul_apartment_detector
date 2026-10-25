@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>서울 아파트 실거래 탐색</title>
+<title>서울 아파트 탐색기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{
@@ -72,6 +72,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 details.gus summary{cursor:pointer;font-size:13px;color:var(--sub);list-style:none}
 details.gus summary::-webkit-details-marker{display:none}
 details.gus[open] summary{margin-bottom:8px}
+.gu-actions{display:flex;gap:6px;margin-bottom:8px}
 .count{margin:16px 2px 8px;color:var(--sub);font-size:14px}
 .list{display:grid;gap:10px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
@@ -148,7 +149,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
 <body>
 <div class="wrap">
   <header>
-    <h1>서울 아파트 실거래 탐색</h1>
+    <h1>서울 아파트 탐색기</h1>
     <p>국토교통부 신고 실거래가 기준 · 매일 아침 자동 갱신 · 해제 거래 제외 · 대표값은 중간값</p>
   </header>
 
@@ -161,8 +162,13 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
       <div class="calc-grid">
         <label class="fld">부부 합산 연소득 (세전)
           <span class="row"><input type="number" id="income" min="0" step="100" placeholder="예: 12000">만원</span></label>
-        <label class="fld">쓸 수 있는 자기자금
-          <span class="row"><input type="number" id="cash" min="0" step="1000" placeholder="예: 40000">만원</span></label>
+        <label class="fld">가용가능한 자기자금 (현금·예금 등)
+          <span class="row"><input type="number" id="cash" min="0" step="1000" placeholder="예: 30000">만원</span></label>
+        <label class="fld">사내대출금 (DSR 미포함)
+          <span class="row"><input type="number" id="corp" min="0" step="500" placeholder="없으면 0">만원</span></label>
+        <label class="fld">사내대출 금리 · 상환기간
+          <span class="row"><input type="number" id="corpRate" min="0" step="0.1" placeholder="예: 2.0">% ·
+            <input type="number" id="corpTerm" min="1" step="1" placeholder="예: 10">년</span></label>
         <label class="fld">기존 대출 연간 원리금 (신용·학자금·할부 등)
           <span class="row"><input type="number" id="debt" min="0" step="100" placeholder="없으면 0">만원/년</span></label>
         <label class="fld">금리 유형
@@ -191,7 +197,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
       <summary>내 점수 기준 <span class="hint" id="scoreHint">항목별 중요도를 정하면 단지마다 100점 만점 점수가 매겨져요</span></summary>
       <div class="w-grid" id="wGrid"></div>
       <div class="small">각 항목을 0~100점으로 바꾼 뒤 중요도로 가중평균해요. 가격은 지금 필터에 걸린 단지들 안에서 싼 순서, 나머지는 고정 기준이에요 —
-        여의도역까지 3km 이내 100점·20km 이상 0점 / 역 도보 5분 이내 100점·20분 이상 0점 / 세대수 100세대 0점·3,000세대 이상 100점 / 준공 5년 이내 100점·35년 이상 0점 / 세대당 주차 1.5대 이상 100점·0.5대 이하 0점. 세대수 정보가 없는 단지는 대부분 150세대 미만 소규모라 세대수 0점으로, 그 밖에 정보가 없는 항목은 빼고 계산해요.</div>
+        여의도역까지 3km 이내 100점·20km 이상 0점 / 역 도보 5분 이내 100점·20분 이상 0점 / 세대수 100세대 0점·3,000세대 이상 100점 / 준공 5년 이내 100점·35년 이상 0점 / 세대당 주차 1.5대 이상 100점·0.5대 이하 0점 / 최근 3개월 매매 10건 이상 100점·1건 0점. 세대수 정보가 없는 단지는 대부분 150세대 미만 소규모라 세대수 0점으로, 그 밖에 정보가 없는 항목은 빼고 계산해요.</div>
     </details>
   </section>
 
@@ -233,6 +239,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     <div class="frow">
       <details class="gus" id="gusBox">
         <summary id="guSummary">구 선택: 서울 전체 ▾</summary>
+        <div class="gu-actions"><button class="btn" type="button" id="guAll">전체 선택</button><button class="btn" type="button" id="guNone">전체 해제</button></div>
         <div class="gu" id="gu"></div>
       </details>
     </div>

@@ -56,14 +56,17 @@
     const maxLoan = Math.max(0, Math.floor(limits[bind] / 100) * 100);
     const acq = acquisitionTax(price, area, p.first);
     const costs = acq.total + brokerage(price) + price * R().etcCostRate;
-    const needCash = price + costs - maxLoan;          // 대출을 최대로 받을 때 필요한 자기자금
-    const margin = p.cash - needCash;
+    const needCash = price + costs - maxLoan;          // 은행 대출을 최대로 받을 때 필요한 자금(자기자금+사내대출)
+    const funds = p.cash + (p.corp || 0);              // 사내대출은 DSR에 안 들어가지만 매수 자금으로 씀
+    const margin = funds - needCash;
     const loanUsed = maxLoan;                           // 최대로 빌린다고 가정(여유분만큼 덜 빌리면 상환액 감소)
-    const monthly = pmt(loanUsed, rate, p.term);
+    const bankMonthly = pmt(loanUsed, rate, p.term);
+    const corpMonthly = p.corp ? pmt(p.corp, p.corpRate, p.corpTerm) : 0;
+    const monthly = bankMonthly + corpMonthly;
     const P = R().policy;
     const policy = price <= P.maxPrice && area <= P.maxArea &&
       p.income <= (p.newlywed ? P.incomeNewlywed : P.incomeFirst);
-    return { ok: margin >= 0, margin, needCash, maxLoan, limits, bind, costs, acq, loanUsed, monthly,
+    return { ok: margin >= 0, margin, needCash, maxLoan, limits, bind, costs, acq, loanUsed, monthly, bankMonthly, corpMonthly,
              monthlyRatio: p.income ? monthly * 12 / p.income : null, policy };
   }
 
