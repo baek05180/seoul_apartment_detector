@@ -110,6 +110,50 @@
       필요 자기자금은 대출을 최대로 받는다고 가정한 값이에요(여유가 있으면 덜 빌려 월 상환을 줄일 수 있어요). 부대비용 = 취득세·지방교육세(·85㎡ 초과 농특세) + 중개보수 상한(부가세 포함) + 기타 ${R.etcCostRate * 100}%. 서울 아파트는 토지거래허가구역이라 실거주 의무가 있어요. 입력값은 이 브라우저에만 저장돼요.`;
   }
 
+  // ------------------------------------------------ 나만의 점수
+  const WEIGHTS = [
+    ["price", "가격(쌀수록)", 3], ["work", "여의도역 거리", 3], ["walk", "지하철역 도보", 3],
+    ["hh", "세대수", 2], ["age", "신축", 2], ["pk", "주차", 1],
+  ];
+  const LEVEL = ["안 봄", "조금", "보통", "중요", "매우", "최우선"];
+  const savedW = store.get("weights") || {};
+  $("wGrid").innerHTML = WEIGHTS.map(([k, label, d]) =>
+    `<label class="w-row"><span class="l">${label}</span><input type="range" min="0" max="5" step="1" id="w_${k}" value="${savedW[k] ?? d}"><b id="wv_${k}"></b></label>`).join("");
+  const weights = () => Object.fromEntries(WEIGHTS.map(([k]) => [k, +$("w_" + k).value]));
+  const showW = () => WEIGHTS.forEach(([k]) => { $("wv_" + k).textContent = LEVEL[+$("w_" + k).value]; });
+  showW();
+  WEIGHTS.forEach(([k]) => $("w_" + k).addEventListener("input", () => {
+    store.set("weights", weights()); showW(); if ($("sort").value !== "score") { $("sort").value = "score"; saveF(); }
+    shown = PAGE; render();
+  }));
+  if (Object.keys(savedW).length) $("scoreBox").open = true;
+
+  const lin = (v, best, worst) => v == null ? null : Math.max(0, Math.min(100, (v - worst) / (best - worst) * 100));
+  function scoreAll(list) {
+    const w = weights();
+    const prices = list.map((x) => x.price).sort((a, b) => a - b);
+    const rank = (p) => {                       // 가격 백분위(싼 쪽이 100)
+      let lo = 0, hi = prices.length;
+      while (lo < hi) { const m = (lo + hi) >> 1; prices[m] < p ? (lo = m + 1) : (hi = m); }
+      return prices.length > 1 ? 100 - lo / (prices.length - 1) * 100 : 100;
+    };
+    const year = new Date(META.generatedAt).getFullYear();
+    for (const it of list) {
+      const part = {
+        price: rank(it.price),
+        work: lin(it.wk, 3, 20),
+        walk: lin(it.walk, 5, 20),
+        hh: it.hh ? lin(Math.log10(it.hh), Math.log10(3000), 2) : 0,   // 세대수 정보 없음 = 대부분 150세대 미만 소규모 → 0점
+        age: it.b ? lin(year - it.b, 5, 35) : null,
+        pk: lin(it.pk, 1.5, 0.5),
+      };
+      let sum = 0, ws = 0;
+      for (const [k, v] of Object.entries(part)) if (v != null && w[k]) { sum += v * w[k]; ws += w[k]; }
+      it.part = part;
+      it.sc = ws ? Math.round(sum / ws) : null;
+    }
+  }
+
   // ------------------------------------------------ 데이터 기준 표시
   function renderFresh() {
     const m = META, box = $("fresh");
@@ -182,8 +226,10 @@
       if (aff && it.L && !it.L.ok) return false;
       return true;
     });
+    scoreAll(out);
     const nz = (v, d) => (v == null || Number.isNaN(v) ? d : v);
     const cmp = {
+      score: (a, b) => nz(b.sc, -1) - nz(a.sc, -1),
       s3a: (a, b) => a.price - b.price,
       s3d: (a, b) => b.price - a.price,
       needa: (a, b) => nz(a.L?.needCash, a.price) - nz(b.L?.needCash, b.price),  // 대출 최대 기준
@@ -212,6 +258,11 @@
       · 최대 대출 시 월 상환 <b>${won(Math.round(L.monthly))}</b>${L.monthlyRatio != null ? ` (월소득의 ${Math.round(L.monthlyRatio * 100)}%)` : ""}</div></div>`;
   }
 
+  function scoreTip(it) {
+    const names = Object.fromEntries(WEIGHTS.map(([k, l]) => [k, l]));
+    return Object.entries(it.part || {}).map(([k, v]) => `${names[k]} ${v == null ? "정보 없음" : Math.round(v) + "점"}`).join(" · ");
+  }
+
   function card(it) {
     const trTxt = it.tr == null ? `<span class="muted">비교 불가</span>` :
       `<b class="${it.tr >= 0 ? "up" : "down"}">${it.tr >= 0 ? "▲" : "▼"} ${Math.abs(it.tr).toFixed(1)}%</b>`;
@@ -229,7 +280,7 @@
     return `<article class="card">
       <div class="top">
         <div>
-          <div class="name">${esc(it.n)}</div>
+          <div class="name">${esc(it.n)}${it.sc != null ? `<span class="score" title="${esc(scoreTip(it))}">${it.sc}점</span>` : ""}</div>
           <div class="loc">${esc(it.g)} ${esc(it.d)} · 전용 ${it.a}㎡ (${pyeong(it.a)}평)${it.b ? ` · ${it.b}년 준공` : ""}</div>
           ${cx ? `<div class="loc">${cx}</div>` : ""}
       ${it.sn || it.wk != null ? `<div class="loc">${it.sn ? `🚇 ${esc(it.sn)} 도보 약 ${it.walk}분(${it.sm.toLocaleString()}m)` : ""}${it.sn && it.wk != null ? " · " : ""}${it.wk != null ? `${esc(window.RULES.work.name)}까지 직선 ${it.wk.toFixed(1)}km` : ""}</div>` : ""}

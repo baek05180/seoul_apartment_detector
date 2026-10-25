@@ -49,6 +49,12 @@ details.sec[open]>summary::after{content:"▴"}
 .calc-out{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .stat{background:var(--bg);border-radius:10px;padding:10px 12px}
 .stat .v{font-size:18px}
+.w-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px;margin-top:14px}
+.w-row{display:flex;align-items:center;gap:10px;font-size:14px}
+.w-row span.l{width:96px;flex:none;white-space:nowrap}
+.w-row input{flex:1;accent-color:var(--accent);padding:0}
+.w-row b{width:52px;flex:none;white-space:nowrap;text-align:right;font-size:13px;color:var(--sub);font-weight:600}
+.score{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;background:var(--accent);color:#fff;font-size:13px;font-weight:800;vertical-align:2px;cursor:help}
 .small{font-size:12px;color:var(--sub);margin-top:10px;line-height:1.6}
 .filters{position:sticky;top:0;z-index:5}
 .frow{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
@@ -145,6 +151,16 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     </details>
   </section>
 
+  <!-- 나만의 점수 -->
+  <section class="panel">
+    <details class="sec" id="scoreBox">
+      <summary>내 점수 기준 <span class="hint" id="scoreHint">항목별 중요도를 정하면 단지마다 100점 만점 점수가 매겨져요</span></summary>
+      <div class="w-grid" id="wGrid"></div>
+      <div class="small">각 항목을 0~100점으로 바꾼 뒤 중요도로 가중평균해요. 가격은 지금 필터에 걸린 단지들 안에서 싼 순서, 나머지는 고정 기준이에요 —
+        여의도역까지 3km 이내 100점·20km 이상 0점 / 역 도보 5분 이내 100점·20분 이상 0점 / 세대수 100세대 0점·3,000세대 이상 100점 / 준공 5년 이내 100점·35년 이상 0점 / 세대당 주차 1.5대 이상 100점·0.5대 이하 0점. 세대수 정보가 없는 단지는 대부분 150세대 미만 소규모라 세대수 0점으로, 그 밖에 정보가 없는 항목은 빼고 계산해요.</div>
+    </details>
+  </section>
+
   <section class="panel filters" aria-label="필터">
     <div class="frow">
       <input type="search" id="q" placeholder="단지명·동 검색">
@@ -163,6 +179,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     <div class="frow">
       <label class="f">정렬
         <select id="sort">
+          <option value="score">내 점수 높은 순</option>
           <option value="s3a">최근 3개월 중간값 낮은 순</option>
           <option value="s3d">최근 3개월 중간값 높은 순</option>
           <option value="needa">필요 자기자금 적은 순</option>
