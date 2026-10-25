@@ -171,7 +171,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
       <label class="f">준공 <input type="number" id="bmin" min="1960" placeholder="년도">년 이후</label>
     </div>
     <div class="frow">
-      <label class="f">세대수 <input type="number" id="hmin" min="0" step="100" placeholder="최소">세대 이상</label>
+      <label class="f" title="기본 300세대. 비우면 소규모·세대수 정보가 없는 단지도 보여요">세대수 <input type="number" id="hmin" min="0" step="100" value="300" placeholder="전체">세대 이상</label>
       <label class="f">역까지 도보 <input type="number" id="wmax" min="1" step="1" placeholder="분">분 이내</label>
       <label class="f"><span id="workLabel">직장</span>까지 <input type="number" id="kmax" min="1" step="1" placeholder="km">km 이내</label>
       <label class="f">3개월 거래 <input type="number" id="cmin" min="0" value="1">건 이상</label>

@@ -193,15 +193,16 @@
   // ------------------------------------------------ 필터
   const FIELDS = ["q","pmin","pmax","amin","amax","bmin","hmin","wmax","kmax","cmin","sort","direct","affordable"];
   const saved = store.get("filters") || {};
+  if (!saved.fv) { saved.hmin = saved.hmin || "300"; }   // 기본: 300세대 미만·세대수 정보 없는 단지 숨김
   FIELDS.forEach((f) => {
     const el = $(f);
     if (saved[f] != null) el.type === "checkbox" ? (el.checked = saved[f]) : (el.value = saved[f]);
     el.addEventListener("input", () => { shown = PAGE; saveF(); if (f === "direct") compute(); render(); });
   });
-  function saveF(){ const o = {}; FIELDS.forEach((f) => { const e = $(f); o[f] = e.type === "checkbox" ? e.checked : e.value; }); store.set("filters", o); }
+  function saveF(){ const o = { fv: 2 }; FIELDS.forEach((f) => { const e = $(f); o[f] = e.type === "checkbox" ? e.checked : e.value; }); store.set("filters", o); }
   $("reset").addEventListener("click", () => {
     FIELDS.forEach((f) => { const e = $(f); e.type === "checkbox" ? (e.checked = false) : (e.value = ""); });
-    $("cmin").value = "1"; $("sort").value = "s3a";
+    $("cmin").value = "1"; $("hmin").value = "300"; $("sort").value = "score";
     selGu.clear(); store.set("gu", []); renderGu(); saveF(); compute(); shown = PAGE; render();
   });
 
