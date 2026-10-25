@@ -154,6 +154,8 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     </div>
     <div class="frow">
       <label class="f">세대수 <input type="number" id="hmin" min="0" step="100" placeholder="최소">세대 이상</label>
+      <label class="f">역까지 도보 <input type="number" id="wmax" min="1" step="1" placeholder="분">분 이내</label>
+      <label class="f"><span id="workLabel">직장</span>까지 <input type="number" id="kmax" min="1" step="1" placeholder="km">km 이내</label>
       <label class="f">3개월 거래 <input type="number" id="cmin" min="0" value="1">건 이상</label>
       <label class="check f"><input type="checkbox" id="direct"> 직거래 포함</label>
       <label class="check f"><input type="checkbox" id="affordable"> 살 수 있는 곳만</label>
@@ -165,6 +167,8 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
           <option value="s3d">최근 3개월 중간값 높은 순</option>
           <option value="needa">필요 자기자금 적은 순</option>
           <option value="hhd">세대수 많은 순</option>
+          <option value="walka">지하철역 가까운 순</option>
+          <option value="worka">직장 가까운 순</option>
           <option value="c3d">거래 많은 순</option>
           <option value="lastd">최근 거래일 순</option>
           <option value="trendd">가격 상승률 높은 순</option>

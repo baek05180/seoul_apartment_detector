@@ -25,6 +25,12 @@
     const s = [...xs].sort((a, b) => a - b), m = s.length >> 1;
     return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
   };
+  const distKm = (a, b, c, d) => {
+    const r = 6371, p1 = a * Math.PI / 180, p2 = c * Math.PI / 180;
+    const dp = p2 - p1, dl = (d - b) * Math.PI / 180;
+    const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+    return 2 * r * Math.asin(Math.sqrt(h));
+  };
   const isoMinus = (d, days) => new Date(d.getTime() - days * 864e5).toISOString().slice(0, 10);
 
   // ------------------------------------------------ 직거래 포함 여부에 따라 통계 계산
@@ -40,8 +46,11 @@
       const pp = ts.filter((x) => x[0] < d90 && x[0] >= d180).map((x) => x[1]);
       const s3 = median(p3), s6 = median(ts.map((x) => x[1]));
       const price = s3 ?? s6;
+      const W = window.RULES.work;
+      const wk = it.lat ? distKm(it.lat, it.lng, W.lat, W.lng) : null;
+      const walk = it.sm != null ? Math.round(it.sm * window.RULES.walkFactor / window.RULES.walkMPerMin) : null;
       ROWS.push({
-        ...it, ts, s3, s6, c3: p3.length, c6: ts.length, sp: median(pp), price,
+        ...it, ts, s3, s6, wk, walk, c3: p3.length, c6: ts.length, sp: median(pp), price,
         lo: p3.length ? Math.min(...p3) : null, hi: p3.length ? Math.max(...p3) : null,
         nd: it.t.filter((x) => x[3]).length,
         jr: it.j && price ? Math.round(it.j / price * 1000) / 10 : null,
@@ -138,7 +147,7 @@
   });
 
   // ------------------------------------------------ 필터
-  const FIELDS = ["q","pmin","pmax","amin","amax","bmin","hmin","cmin","sort","direct","affordable"];
+  const FIELDS = ["q","pmin","pmax","amin","amax","bmin","hmin","wmax","kmax","cmin","sort","direct","affordable"];
   const saved = store.get("filters") || {};
   FIELDS.forEach((f) => {
     const el = $(f);
@@ -157,7 +166,7 @@
   function filtered() {
     const q = $("q").value.trim().replace(/\s+/g, "");
     const pmin = numv("pmin"), pmax = numv("pmax"), amin = numv("amin"), amax = numv("amax"),
-      bmin = numv("bmin"), hmin = numv("hmin"), cmin = numv("cmin") ?? 0, aff = $("affordable").checked;
+      bmin = numv("bmin"), hmin = numv("hmin"), wmax = numv("wmax"), kmax = numv("kmax"), cmin = numv("cmin") ?? 0, aff = $("affordable").checked;
     const out = ROWS.filter((it) => {
       if (selGu.size && !selGu.has(it.g)) return false;
       if (q && !(it.n + it.d).replace(/\s+/g, "").includes(q)) return false;
@@ -167,6 +176,8 @@
       if (amax != null && it.a > amax) return false;
       if (bmin != null && (it.b ?? 0) < bmin) return false;
       if (hmin != null && (it.hh ?? 0) < hmin) return false;
+      if (wmax != null && (it.walk == null || it.walk > wmax)) return false;
+      if (kmax != null && (it.wk == null || it.wk > kmax)) return false;
       if (it.c3 < cmin) return false;
       if (aff && it.L && !it.L.ok) return false;
       return true;
@@ -177,6 +188,8 @@
       s3d: (a, b) => b.price - a.price,
       needa: (a, b) => nz(a.L?.needCash, a.price) - nz(b.L?.needCash, b.price),  // 대출 최대 기준
       hhd: (a, b) => nz(b.hh, -1) - nz(a.hh, -1),
+      walka: (a, b) => nz(a.walk, 1e9) - nz(b.walk, 1e9),
+      worka: (a, b) => nz(a.wk, 1e9) - nz(b.wk, 1e9),
       c3d: (a, b) => b.c3 - a.c3 || b.c6 - a.c6,
       lastd: (a, b) => b.ts[0][0].localeCompare(a.ts[0][0]),
       trendd: (a, b) => nz(b.tr, -1e9) - nz(a.tr, -1e9),
@@ -219,6 +232,7 @@
           <div class="name">${esc(it.n)}</div>
           <div class="loc">${esc(it.g)} ${esc(it.d)} · 전용 ${it.a}㎡ (${pyeong(it.a)}평)${it.b ? ` · ${it.b}년 준공` : ""}</div>
           ${cx ? `<div class="loc">${cx}</div>` : ""}
+      ${it.sn || it.wk != null ? `<div class="loc">${it.sn ? `🚇 ${esc(it.sn)} 도보 약 ${it.walk}분(${it.sm.toLocaleString()}m)` : ""}${it.sn && it.wk != null ? " · " : ""}${it.wk != null ? `${esc(window.RULES.work.name)}까지 직선 ${it.wk.toFixed(1)}km` : ""}</div>` : ""}
         </div>
         <div class="price">
           <div class="big">${won(it.price)}</div>
@@ -238,6 +252,7 @@
         <table><thead><tr><th>계약일</th><th>금액</th><th>층</th><th></th></tr></thead><tbody>${rows}</tbody></table>
       </details>
       <div class="links">
+        ${it.lat ? `<a href="https://map.kakao.com/link/by/traffic/${encodeURIComponent(it.n.replace(/[,/]/g, " "))},${it.lat},${it.lng}/${encodeURIComponent(window.RULES.work.name)},${window.RULES.work.lat},${window.RULES.work.lng}" target="_blank" rel="noopener"><b>${esc(window.RULES.work.name)}까지 대중교통 길찾기</b></a>` : ""}
         <a href="https://map.naver.com/p/search/${q}" target="_blank" rel="noopener">네이버지도</a>
         <a href="https://m.land.naver.com/search/result/${q}" target="_blank" rel="noopener">네이버부동산 호가</a>
         <a href="https://kbland.kr/" target="_blank" rel="noopener">KB부동산</a>
@@ -259,6 +274,7 @@
   $("more").addEventListener("click", () => { shown += PAGE; render(); });
 
   // ------------------------------------------------ 시작
+  $("workLabel").textContent = window.RULES.work.name;
   renderGu();
   renderCalc();
   Promise.all([

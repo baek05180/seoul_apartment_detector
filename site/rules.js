@@ -26,6 +26,11 @@ window.RULES = {
   brokerageVat: 1.1,
   etcCostRate: 0.002,                   // 법무사·채권할인·인지세 등 대략
 
+  // 직장(출퇴근 기준점). 바꾸려면 이름과 좌표를 수정
+  work: { name: "여의도역", lat: 37.521624, lng: 126.924191 },
+  walkFactor: 1.3,                      // 직선거리 → 실제 보행거리 보정
+  walkMPerMin: 75,                      // 도보 속도(m/분)
+
   // 정책대출 '검토 대상' 표시용 (요건 충족 확정 아님)
   policy: { maxPrice: 60000, incomeNewlywed: 8500, incomeFirst: 7000, maxArea: 85 },
 };

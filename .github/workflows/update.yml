@@ -32,6 +32,7 @@ jobs:
     env:
       MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
       ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+      KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
       PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +59,9 @@ jobs:
               echo "-- 금리 --";     python scripts/fetch_rate.py    || echo "(금리 단계 실패, 계속 진행)"
             fi
             echo "-- 실거래 --";     python scripts/fetch_molit.py
+            if [ "$PROBE" != "1" ]; then
+              echo "-- 좌표·지하철역 --"; python scripts/geocode.py || echo "(좌표 단계 실패, 계속 진행)"
+            fi
           } 2>&1 | tee diag/last_run.log
 
       - name: 결과 저장(커밋)
