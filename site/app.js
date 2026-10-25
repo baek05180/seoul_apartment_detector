@@ -118,7 +118,7 @@
   const LEVEL = ["안 봄", "조금", "보통", "중요", "매우", "최우선"];
   const savedW = store.get("weights") || {};
   $("wGrid").innerHTML = WEIGHTS.map(([k, label, d]) =>
-    `<label class="w-row"><span class="l">${label}</span><input type="range" min="0" max="5" step="1" id="w_${k}" value="${savedW[k] ?? d}"><b id="wv_${k}"></b></label>`).join("");
+    `<label class="w-item"><span class="w-head"><span>${label}</span><b id="wv_${k}"></b></span><input type="range" min="0" max="5" step="1" id="w_${k}" value="${savedW[k] ?? d}"></label>`).join("");
   const weights = () => Object.fromEntries(WEIGHTS.map(([k]) => [k, +$("w_" + k).value]));
   const showW = () => WEIGHTS.forEach(([k]) => { $("wv_" + k).textContent = LEVEL[+$("w_" + k).value]; });
   showW();
