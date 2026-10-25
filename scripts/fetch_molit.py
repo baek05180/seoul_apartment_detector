@@ -198,40 +198,76 @@ def jibun_keys(gu: str, umd: str, jibun: str) -> list:
 
 
 def load_kapt() -> dict:
-    """공동주택 단지정보 캐시(fetch_complex.py가 만든 것)를 지번 키로 색인."""
+    """공동주택 단지정보(data/kapt.json)를 색인.
+    - exact: 구|동|지번(본번-부번) → 단지   - main: 구|동|본번 → 단지 목록   - name: 구|동|단지명 → 단지
+    """
     path = os.path.join(os.path.dirname(__file__), "..", "data", "kapt.json")
     try:
         with open(path, encoding="utf-8") as f:
             cx = json.load(f).get("complexes", {})
     except FileNotFoundError:
-        return {}
-    idx = {}
+        return {"exact": {}, "main": {}, "name": {}}
+    idx = {"exact": {}, "main": {}, "name": {}}
     for code, c in cx.items():
         if not c.get("hh") or c.get("v") != 2:   # 형식이 맞는(검증된) 것만 사용
             continue
-        for k in jibun_keys(c.get("gu", ""), c.get("umd", ""), c.get("jibun", "")):
-            idx.setdefault(k, (code, c))
-        umd = c.get("umd") or c.get("umdList", "")
-        idx.setdefault(f"N|{c.get('gu')}|{umd}|{norm_name(c.get('name', '')).replace('아파트', '')}", (code, c))
+        gu, umd = c.get("gu", ""), c.get("umd") or c.get("umdList", "")
+        for jb in (c.get("jibuns") or [c.get("jibun", "")]):
+            if not jb:
+                continue
+            idx["exact"].setdefault(f"{gu}|{umd}|{jb}", []).append((code, c))
+            idx["main"].setdefault(f"{gu}|{umd}|{jb.split('-')[0]}", []).append((code, c))
+        idx["name"].setdefault(f"{gu}|{umd}|{simple(c.get('name', ''))}", []).append((code, c))
     return idx
 
 
+def simple(name: str) -> str:
+    return re.sub(r"(아파트|apt|APT)", "", norm_name(name))
+
+
+def name_score(a: str, b: str) -> float:
+    """두 단지명의 겹치는 정도(공통 2글자 조각 비율)."""
+    a, b = simple(a), simple(b)
+    if not a or not b:
+        return 0
+    if a == b:
+        return 1.0
+    ga = {a[i:i + 2] for i in range(len(a) - 1)} or {a}
+    gb = {b[i:i + 2] for i in range(len(b) - 1)} or {b}
+    return len(ga & gb) / max(1, min(len(ga), len(gb)))
+
+
+def pick(cands, name):
+    """후보가 여럿이면 이름이 가장 비슷한 단지, 같으면 세대수가 큰 단지."""
+    if not cands:
+        return None
+    best = max(cands, key=lambda v: (name_score(name, v[1].get("name", "")), v[1].get("hh") or 0))
+    return best
+
+
 def kapt_lookup(kapt: dict, gu: str, umd: str, jbs: list, name: str):
-    """지번 → 같은 동의 같은 이름 → 같은 동에서 이름이 서로 포함되는 단지(하나뿐일 때) 순으로 찾음."""
+    """정확한 지번 → 같은 본번(이름이 비슷할 때만) → 같은 동의 같은 이름 → 이름이 비슷한 단지(하나뿐일 때)."""
+    pre = f"{gu}|{umd}|"
+    by_name = [v for k, vs in kapt["name"].items() if k.startswith(pre) for v in vs
+               if name_score(name, v[1].get("name", "")) >= 0.75]
     for jb in jbs:
-        for k in jibun_keys(gu, umd, jb):
-            if k in kapt:
-                return kapt[k]
-    nm = norm_name(name).replace("아파트", "")
-    hit = kapt.get(f"N|{gu}|{umd}|{nm}")
+        hit = pick(kapt["exact"].get(f"{gu}|{umd}|{jb}"), name)
+        if hit:
+            # 지번은 같은데 이름이 전혀 다르고, 같은 동에 이름이 거의 같은 단지가 하나 있으면 그쪽을 택함
+            if name_score(name, hit[1].get("name", "")) < 0.3 and len({v[0] for v in by_name}) == 1:
+                return by_name[0]
+            return hit
+    for jb in jbs:
+        cands = [v for v in kapt["main"].get(f"{gu}|{umd}|{jb.split('-')[0]}", [])
+                 if name_score(name, v[1].get("name", "")) >= 0.5]
+        hit = pick(cands, name)
+        if hit:
+            return hit
+    hit = pick(kapt["name"].get(f"{gu}|{umd}|{simple(name)}"), name)
     if hit:
         return hit
-    if len(nm) >= 3:
-        pre = f"N|{gu}|{umd}|"
-        cands = {v[0]: v for k, v in kapt.items() if k.startswith(pre) and len(k) > len(pre) + 2
-                 and (nm in k[len(pre):] or k[len(pre):] in nm)}
-        if len(cands) == 1:
-            return next(iter(cands.values()))
+    if len({v[0] for v in by_name}) == 1:
+        return by_name[0]
     return None
 
 

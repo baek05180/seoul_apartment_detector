@@ -110,15 +110,18 @@ def main() -> int:
         code = row[c_code]
         if not code:
             continue
-        toks = addr.split()
-        gu = next((t for t in toks if t.endswith("구")), row[c_sgg] if c_sgg is not None else "")
-        umd, jb = "", ""
-        if gu in toks:
-            i = toks.index(gu)
-            umd = toks[i + 1] if len(toks) > i + 1 else ""
-            cand = (toks[i + 2] if len(toks) > i + 2 else "").rstrip("-")
-            if re.fullmatch(r"산?\d+(-\d+)?", cand):
-                jb = cand
+        # 주소에 지번이 여러 개면 '서울특별시 관악구 신림동 316-62,서울특별시 관악구 신림동 316-55 단지명' 형태
+        gu = next((t for t in addr.split() if t.endswith("구")), row[c_sgg] if c_sgg is not None else "")
+        umd, jbs = "", []
+        for part in addr.split(","):
+            toks = part.split()
+            if gu in toks:
+                i = toks.index(gu)
+                umd = umd or (toks[i + 1] if len(toks) > i + 1 else "")
+                cand = (toks[i + 2] if len(toks) > i + 2 else "").rstrip("-")
+                if re.fullmatch(r"산?\d+(-\d+)?", cand) and cand not in jbs:
+                    jbs.append(cand)
+        jb = jbs[0] if jbs else ""
         hh = to_int(row[c_hh])
         pk = to_int(row[c_pk]) if c_pk is not None else 0
         if not pk and c_pk_up is not None and c_pk_dn is not None:
@@ -126,7 +129,7 @@ def main() -> int:
         c = cx.setdefault(code, {})
         c.update({
             "name": row[c_name] if c_name is not None else c.get("name", ""),
-            "gu": gu or c.get("gu", ""), "addr": addr, "umd": umd, "jibun": jb,
+            "gu": gu or c.get("gu", ""), "addr": addr, "umd": umd, "jibun": jb, "jibuns": jbs,
             "road": row[c_road] if c_road is not None else c.get("road", ""),
             "hh": hh, "pk": round(pk / hh, 2) if hh and pk else c.get("pk"),
             "dong": to_int(row[c_dong]) if c_dong is not None else c.get("dong"),
