@@ -1,41 +1,13 @@
-== 2026-10-25 15:36 ==
+== 2026-10-26 06:38 ==
 -- 단지정보(엑셀) --
 
 [notice] A new release of pip is available: 26.2.1 -> 26.2.2
 [notice] To update, run: pip install --upgrade pip
 엑셀은 2026-10-25에 반영돼서 건너뜀
 -- 단지정보(API) --
-[기본정보 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptBasisInfoServiceV5: 하루 호출량 소진(429) — 내일 자동 실행에서 이어서 받음 | AptBasisInfoServiceV4: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �' | AptBasisInfoServiceV3: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �' | AptBasisInfoService1: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �'
-→ '공동주택 기본 정보제공 서비스' 활용신청이 필요합니다.
+[단지 목록 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptListService4: HTTP 403: b'{\n  "OpenAPI_ServiceResponse": {\n    "cmmMsgHeader": {\n      "errMsg": "SERVICE_KEY_IS_NOT_REGISTERED_ERROR",\n      "returnAuthMsg": "\xeb\x93\xb1\xeb\xa1\x9d\xeb\x90\x98\xec\xa7\x80 \xec\x95\x8a\xec\x9d\x80 \xec\x84\x9c\xeb\xb9\x84\xec\x8a\xa4\xed\x82\xa4",\n      "returnReasonCode": "30"\n' | AptListService3: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �' | AptListService2: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �'
+→ 공공데이터포털에서 '공동주택 단지 목록제공 서비스' 활용신청이 필요합니다.
 -- 금리 --
 주담대 평균금리 4.66% (2026-08) 저장
 -- 실거래 --
-종로구 완료 (누적 매매 213건, 전월세 909건)
-중구 완료 (누적 매매 551건, 전월세 2322건)
-용산구 완료 (누적 매매 932건, 전월세 4949건)
-성동구 완료 (누적 매매 1516건, 전월세 8653건)
-광진구 완료 (누적 매매 1983건, 전월세 10310건)
-동대문구 완료 (누적 매매 3399건, 전월세 13860건)
-중랑구 완료 (누적 매매 4822건, 전월세 17893건)
-성북구 완료 (누적 매매 6355건, 전월세 20927건)
-강북구 완료 (누적 매매 6989건, 전월세 22165건)
-도봉구 완료 (누적 매매 8444건, 전월세 24257건)
-노원구 완료 (누적 매매 11735건, 전월세 31240건)
-은평구 완료 (누적 매매 13152건, 전월세 35159건)
-서대문구 완료 (누적 매매 14203건, 전월세 37786건)
-마포구 완료 (누적 매매 15002건, 전월세 42434건)
-양천구 완료 (누적 매매 16011건, 전월세 46890건)
-강서구 완료 (누적 매매 17951건, 전월세 52945건)
-구로구 완료 (누적 매매 19787건, 전월세 58019건)
-금천구 완료 (누적 매매 20389건, 전월세 59413건)
-영등포구 완료 (누적 매매 21522건, 전월세 63929건)
-동작구 완료 (누적 매매 22492건, 전월세 67340건)
-관악구 완료 (누적 매매 23512건, 전월세 69810건)
-서초구 완료 (누적 매매 24463건, 전월세 75567건)
-강남구 완료 (누적 매매 25549건, 전월세 84343건)
-송파구 완료 (누적 매매 27291건, 전월세 91904건)
-강동구 완료 (누적 매매 28720건, 전월세 97528건)
-단지정보 연결: 6241/8614
-저장: /home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/../site/data/summary.json · 단지·평형 8614개 · 최신 계약일 2026-10-23 · 실패 0건
--- 좌표·지하철역 --
-좌표 붙은 단지·평형 8614/8614
+[중단] 인증 오류: 등록되지 않은 서비스키 (reasonCode=30)
