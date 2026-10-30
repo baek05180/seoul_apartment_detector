@@ -1,10 +1,15 @@
-== 2026-10-30 06:50 ==
+== 2026-10-31 06:44 ==
 -- 단지정보(엑셀) --
 엑셀은 2026-10-25에 반영돼서 건너뜀
 -- 단지정보(API) --
-[단지 목록 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptListService4: HTTP 403: b'{\n  "OpenAPI_ServiceResponse": {\n    "cmmMsgHeader": {\n      "errMsg": "SERVICE_KEY_IS_NOT_REGISTERED_ERROR",\n      "returnAuthMsg": "\xeb\x93\xb1\xeb\xa1\x9d\xeb\x90\x98\xec\xa7\x80 \xec\x95\x8a\xec\x9d\x80 \xec\x84\x9c\xeb\xb9\x84\xec\x8a\xa4\xed\x82\xa4",\n      "returnReasonCode": "30"\n' | AptListService3: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �' | AptListService2: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �'
+[단지 목록 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptListService4: 요청 실패: <urlopen error timed out> | AptListService3: 요청 실패: <urlopen error timed out> | AptListService2: 요청 실패: <urlopen error timed out>
 → 공공데이터포털에서 '공동주택 단지 목록제공 서비스' 활용신청이 필요합니다.
 -- 금리 --
 주담대 평균금리 4.88% (2026-09) 저장
 -- 실거래 --
-[중단] 인증 오류: 등록되지 않은 서비스키 (reasonCode=30)
+[경고] 종로구 202610: 요청 실패 11110 202610 p1: <urlopen error timed out>
+[경고] 종로구 202609: 요청 실패 11110 202609 p1: <urlopen error timed out>
+[경고] 종로구 202608: 요청 실패 11110 202608 p1: <urlopen error timed out>
+[경고] 종로구 202607: 요청 실패 11110 202607 p1: <urlopen error timed out>
+[경고] 종로구 202606: 요청 실패 11110 202606 p1: <urlopen error timed out>
+[중단] 처음부터 연속 실패 — 국토부 서버 접속 문제로 보입니다.
