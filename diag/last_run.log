@@ -1,15 +1,21 @@
-== 2026-10-31 06:44 ==
+== 2026-11-01 06:41 ==
 -- 단지정보(엑셀) --
-엑셀은 2026-10-25에 반영돼서 건너뜀
+다운로드 238바이트 · text/html;charset=utf-8 · None
+Traceback (most recent call last):
+  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 152, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 65, in main
+    for row in it:
+               ^^
+  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 44, in rows_from
+    raise RuntimeError(f"엑셀 형식이 아님: {data[:200]!r}")
+RuntimeError: 엑셀 형식이 아님: b'\r\n\r\n\r\n\r\n\r\n<script type="text/javascript">\r\n\r\n\r\n\talert(\'\xec\xa0\x95\xec\x83\x81\xec\xa0\x81\xec\x9d\xb8 \xec\xa0\x91\xea\xb7\xbc\xec\x9d\xb4 \xec\x95\x84\xeb\x8b\x99\xeb\x8b\x88\xeb\x8b\xa4.\\n\xeb\xac\xb8\xec\xa0\x9c\xea\xb0\x80 \xec\xa7\x80\xec\x86\x8d\xeb\x90\xa0 \xec\x8b\x9c \xea\xb4\x80\xeb\xa6\xac\xec\x9e\x90\xec\x97\x90\xea\xb2\x8c \xeb\xac\xb8\xec\x9d\x98\xed\x95\x98\xec\x97\xac \xec\xa3\xbc\xec\x8b\xad\xec\x8b\x9c\xec\x98\xa4.\');\r\n\twindow.location = \'/web/board/webRe'
+(엑셀 단계 실패, 계속 진행)
 -- 단지정보(API) --
-[단지 목록 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptListService4: 요청 실패: <urlopen error timed out> | AptListService3: 요청 실패: <urlopen error timed out> | AptListService2: 요청 실패: <urlopen error timed out>
+[단지 목록 서비스 사용 불가] 사용 가능한 엔드포인트 없음 → AptListService4: HTTP 403: b'{\n  "OpenAPI_ServiceResponse": {\n    "cmmMsgHeader": {\n      "errMsg": "SERVICE_KEY_IS_NOT_REGISTERED_ERROR",\n      "returnAuthMsg": "\xeb\x93\xb1\xeb\xa1\x9d\xeb\x90\x98\xec\xa7\x80 \xec\x95\x8a\xec\x9d\x80 \xec\x84\x9c\xeb\xb9\x84\xec\x8a\xa4\xed\x82\xa4",\n      "returnReasonCode": "30"\n' | AptListService3: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �' | AptListService2: 요청 실패: HTTP 400 '<?xml version="1.0" encoding="UTF-8"?>\n<OpenAPI_ServiceResponse>\n<cmmMsgHeader>\n  <errMsg>NO_OPENAPI_SERVICE_ERROR</errMsg>\n  <returnAuthMsg>해당 오픈API �'
 → 공공데이터포털에서 '공동주택 단지 목록제공 서비스' 활용신청이 필요합니다.
 -- 금리 --
 주담대 평균금리 4.88% (2026-09) 저장
 -- 실거래 --
-[경고] 종로구 202610: 요청 실패 11110 202610 p1: <urlopen error timed out>
-[경고] 종로구 202609: 요청 실패 11110 202609 p1: <urlopen error timed out>
-[경고] 종로구 202608: 요청 실패 11110 202608 p1: <urlopen error timed out>
-[경고] 종로구 202607: 요청 실패 11110 202607 p1: <urlopen error timed out>
-[경고] 종로구 202606: 요청 실패 11110 202606 p1: <urlopen error timed out>
-[중단] 처음부터 연속 실패 — 국토부 서버 접속 문제로 보입니다.
+[중단] 인증 오류: 등록되지 않은 서비스키 (reasonCode=30)
