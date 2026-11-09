@@ -464,7 +464,7 @@
         return `<div class="pop-name">${esc(best.n)}</div><div style="color:#5b6474">${esc(best.g)} ${esc(best.d)}${info ? " · " + info : ""}</div>${rows}
           <div style="margin-top:6px"><a target="_blank" rel="noopener" href="https://map.kakao.com/link/by/traffic/${encodeURIComponent(best.n.replace(/[,/]/g, " "))},${best.lat},${best.lng}/${encodeURIComponent(W.name)},${W.lat},${W.lng}">${esc(W.name)}까지 길찾기</a>
           · <a target="_blank" rel="noopener" href="https://map.naver.com/p/search/${encodeURIComponent(best.n.replace(/\(.*?\)/g, "").trim())}">네이버지도</a></div>`;
-      }, { maxWidth: Math.min(300, window.innerWidth - 80), autoPanPadding: [16, 16] });
+      }, { maxWidth: Math.min(300, map.getSize().x - 60), minWidth: Math.min(200, map.getSize().x - 60), autoPanPadding: [10, 10] });
       m.addTo(layer);
       pts.push([best.lat, best.lng]);
     }
