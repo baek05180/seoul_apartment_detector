@@ -413,6 +413,7 @@
     }).addTo(map);
     L.marker([W.lat, W.lng], { title: W.name }).addTo(map).bindTooltip(`🏢 ${W.name}`, { permanent: false });
     layer = L.layerGroup().addTo(map);
+    map.on("zoomend", () => layer.eachLayer((m) => m.setRadius(m.options.baseR * zoomScale())));
     map.on("moveend", () => { if ($("inView").checked) { shown = PAGE; render(); } });
     map.getContainer().addEventListener("click", (e) => {
       const b = e.target.closest(".pop-cmp"); if (!b) return;
@@ -422,6 +423,7 @@
   }
   $("mapBox").addEventListener("toggle", () => { if ($("mapBox").open) { lastSig = ""; ensureMap(); setTimeout(() => { map && map.invalidateSize(); render(); }, 50); } });
 
+  const zoomScale = () => { const z = map ? map.getZoom() : 12; return z >= 15 ? 1.2 : z >= 14 ? 1 : z >= 13 ? 0.8 : z >= 12 ? 0.6 : 0.45; };
   function colorOf(it) {
     if (it.L) return it.L.ok ? "#11795a" : "#d1342f";
     if (it.sc == null) return "#1f5eff";
@@ -449,7 +451,7 @@
       const anyOk = items.some((x) => x.L?.ok);
       const col = hasL ? (anyOk ? "#11795a" : "#d1342f") : colorOf(best);
       const r = best.hh ? Math.max(5, Math.min(11, 3 + Math.log10(best.hh) * 2.3)) : 5;
-      const m = L.circleMarker([best.lat, best.lng], { radius: r, color: "#fff", weight: 1.5, fillColor: col, fillOpacity: 0.88 });
+      const m = L.circleMarker([best.lat, best.lng], { radius: r * zoomScale(), baseR: r, color: "#fff", weight: 1.5, fillColor: col, fillOpacity: 0.88 });
       m.bindTooltip(`${best.n} · ${won(best.price)}${best.sc != null ? ` · ${best.sc}점` : ""}`, { direction: "top" });
       m.bindPopup(() => {
         const rows = items.map((x) => {
