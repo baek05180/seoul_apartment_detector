@@ -327,13 +327,15 @@
   const cmp = new Set(store.get("compare") || []);
   const saveCmp = () => store.set("compare", [...cmp]);
 
+  function toggleCmp(k) {
+    if (cmp.has(k)) cmp.delete(k);
+    else if (cmp.size >= CMP_MAX) { renderCmpBar(); $("cmpBar").hidden = false; alertBar(`비교는 최대 ${CMP_MAX}곳까지 담을 수 있어요`); return false; }
+    else cmp.add(k);
+    saveCmp(); render(); return true;
+  }
   $("list").addEventListener("click", (e) => {
     const b = e.target.closest(".cmp-btn"); if (!b) return;
-    const k = b.dataset.key;
-    if (cmp.has(k)) cmp.delete(k);
-    else if (cmp.size >= CMP_MAX) { alertBar(`비교는 최대 ${CMP_MAX}곳까지 담을 수 있어요`); return; }
-    else cmp.add(k);
-    saveCmp(); render();
+    toggleCmp(b.dataset.key);
   });
   function alertBar(msg) { const n = $("cmpMsg"); n.textContent = msg; setTimeout(() => { n.textContent = ""; }, 2500); }
 
@@ -400,12 +402,88 @@
     document.body.style.overflow = "hidden";
   }
 
+  // ------------------------------------------------ 지도
+  let map = null, layer = null, lastSig = "", lastKeys = "";
+  const W = window.RULES.work;
+  function ensureMap() {
+    if (map || !window.L || !$("mapBox").open) return map;
+    map = L.map("map", { preferCanvas: true, scrollWheelZoom: true }).setView([37.5565, 126.99], 11);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+    L.marker([W.lat, W.lng], { title: W.name }).addTo(map).bindTooltip(`🏢 ${W.name}`, { permanent: false });
+    layer = L.layerGroup().addTo(map);
+    map.on("moveend", () => { if ($("inView").checked) { shown = PAGE; render(); } });
+    map.getContainer().addEventListener("click", (e) => {
+      const b = e.target.closest(".pop-cmp"); if (!b) return;
+      if (toggleCmp(b.dataset.key) !== false) { const on = cmp.has(b.dataset.key); b.classList.toggle("on", on); b.textContent = on ? "✓ 담김" : "+ 비교"; }
+    });
+    return map;
+  }
+  $("mapBox").addEventListener("toggle", () => { if ($("mapBox").open) { lastSig = ""; ensureMap(); setTimeout(() => { map && map.invalidateSize(); render(); }, 50); } });
+
+  function colorOf(it) {
+    if (it.L) return it.L.ok ? "#11795a" : "#d1342f";
+    if (it.sc == null) return "#1f5eff";
+    return it.sc >= 70 ? "#1f5eff" : it.sc >= 50 ? "#6f9bff" : "#a9bff5";
+  }
+  function updateMap(base) {
+    if (!ensureMap()) return;
+    const hasL = !!profile();
+    const sig = hasL + "|" + base.length + "|" + base.slice(0, 3000).map((x) => keyOf(x) + (x.sc ?? "") + (x.L?.ok ?? "")).join(",");
+    if (sig === lastSig) return;
+    const keys = base.map(keyOf).sort().join(",");      // 정렬·점수만 바뀐 경우엔 지도 범위를 그대로 둠
+    const filtersChanged = keys !== lastKeys;
+    lastSig = sig; lastKeys = keys;
+    layer.clearLayers();
+    const groups = new Map();
+    for (const it of base) {
+      if (!it.lat) continue;
+      const k = it.lat.toFixed(5) + "," + it.lng.toFixed(5);
+      (groups.get(k) || groups.set(k, []).get(k)).push(it);
+    }
+    const pts = [];
+    for (const items of groups.values()) {
+      items.sort((a, b) => a.a - b.a);
+      const best = items.reduce((m, x) => (x.sc ?? -1) > (m.sc ?? -1) ? x : m, items[0]);
+      const anyOk = items.some((x) => x.L?.ok);
+      const col = hasL ? (anyOk ? "#11795a" : "#d1342f") : colorOf(best);
+      const r = best.hh ? Math.max(5, Math.min(11, 3 + Math.log10(best.hh) * 2.3)) : 5;
+      const m = L.circleMarker([best.lat, best.lng], { radius: r, color: "#fff", weight: 1.5, fillColor: col, fillOpacity: 0.88 });
+      m.bindTooltip(`${best.n} · ${won(best.price)}${best.sc != null ? ` · ${best.sc}점` : ""}`, { direction: "top" });
+      m.bindPopup(() => {
+        const rows = items.map((x) => {
+          const k = keyOf(x), on = cmp.has(k);
+          const verdict = x.L ? (x.L.ok ? ` · <span style="color:#11795a">가능</span>` : ` · <span style="color:#d1342f">${won(-x.L.margin)} 부족</span>`) : "";
+          return `<div class="pop-row"><span>${x.a}㎡ · <b>${won(x.price)}</b>${x.sc != null ? ` · ${x.sc}점` : ""}${verdict}</span>
+            <button type="button" class="pop-cmp${on ? " on" : ""}" data-key="${esc(k)}">${on ? "✓ 담김" : "+ 비교"}</button></div>`;
+        }).join("");
+        const info = [best.hh ? `${best.hh.toLocaleString()}세대` : "", best.b ? `${best.b}년` : "", best.sn ? `${esc(best.sn)} 도보 ${best.walk}분` : ""].filter(Boolean).join(" · ");
+        return `<div class="pop-name">${esc(best.n)}</div><div style="color:#5b6474">${esc(best.g)} ${esc(best.d)}${info ? " · " + info : ""}</div>${rows}
+          <div style="margin-top:6px"><a target="_blank" rel="noopener" href="https://map.kakao.com/link/by/traffic/${encodeURIComponent(best.n.replace(/[,/]/g, " "))},${best.lat},${best.lng}/${encodeURIComponent(W.name)},${W.lat},${W.lng}">${esc(W.name)}까지 길찾기</a>
+          · <a target="_blank" rel="noopener" href="https://map.naver.com/p/search/${encodeURIComponent(best.n.replace(/\(.*?\)/g, "").trim())}">네이버지도</a></div>`;
+      });
+      m.addTo(layer);
+      pts.push([best.lat, best.lng]);
+    }
+    $("mapHint").textContent = `단지 ${groups.size.toLocaleString()}곳 표시 중`;
+    $("mapLegend").innerHTML = hasL
+      ? `<span><i style="background:#11795a"></i>매수 가능</span><span><i style="background:#d1342f"></i>자금 부족</span><span>원 크기 = 세대수</span>`
+      : `<span><i style="background:#1f5eff"></i>70점 이상</span><span><i style="background:#6f9bff"></i>50~69점</span><span><i style="background:#a9bff5"></i>50점 미만</span><span>원 크기 = 세대수</span>`;
+    if (filtersChanged && pts.length && !$("inView").checked) map.fitBounds(pts, { padding: [24, 24], maxZoom: 15 });
+  }
+  $("inView").addEventListener("input", () => { store.set("inView", $("inView").checked); shown = PAGE; render(); });
+  try { $("inView").checked = !!store.get("inView"); } catch {}
+
   function render() {
     if (!META) return;
     renderCmpBar();
-    const list = filtered();
+    const base = filtered();
+    updateMap(base);
+    const bounds = map && $("inView").checked && $("mapBox").open ? map.getBounds() : null;
+    const list = bounds ? base.filter((x) => x.lat && bounds.contains([x.lat, x.lng])) : base;
     const okN = list.filter((x) => x.L?.ok).length;
-    $("count").textContent = `조건에 맞는 단지·평형 ${list.length.toLocaleString()}개` +
+    $("count").textContent = `${bounds ? "지도 영역 안" : "조건에 맞는"} 단지·평형 ${list.length.toLocaleString()}개` +
       (list[0]?.L !== undefined && profile() ? ` · 그중 매수 가능 ${okN.toLocaleString()}개` : "");
     $("list").innerHTML = list.length ? list.slice(0, shown).map(card).join("") :
       `<div class="empty">조건에 맞는 단지가 없어요. 필터를 조금 넓혀 보세요.</div>`;

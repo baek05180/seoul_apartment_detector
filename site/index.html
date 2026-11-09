@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>서울 아파트 탐색기</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 :root{
@@ -128,6 +129,16 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
 .link-btn{font:inherit;font-size:12px;color:var(--accent);background:none;border:0;padding:2px 0;cursor:pointer}
 .okc{color:var(--ok);font-weight:700} .noc{color:var(--no);font-weight:700}
 .wrap{padding-bottom:90px}
+#map{height:460px;margin-top:10px;border-radius:12px;border:1px solid var(--line);z-index:0}
+.map-tools{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;align-items:center;margin-top:10px}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.leaflet-popup-content{font-family:inherit;font-size:13px;line-height:1.5;margin:10px 12px;min-width:220px}
+.pop-name{font-weight:800;font-size:14px}
+.pop-row{display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid #eee;padding:4px 0}
+.pop-row button{font:inherit;font-size:11px;border:1px solid #cfd6e4;background:#fff;border-radius:999px;padding:1px 8px;cursor:pointer;white-space:nowrap}
+.pop-row button.on{background:#e8efff;color:#1f5eff;border-color:#1f5eff}
+@media (max-width:640px){#map{height:360px}}
 @media (max-width:640px){
   .cmp-top .muted{display:none}
   .cmp-modal{padding:8px}
@@ -245,6 +256,17 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     </div>
   </section>
 
+  <section class="panel">
+    <details class="sec" id="mapBox" open>
+      <summary>지도 <span class="hint" id="mapHint">조건에 맞는 단지가 지도에 표시돼요</span></summary>
+      <div class="map-tools">
+        <label class="check f"><input type="checkbox" id="inView"> 지도에 보이는 단지만 목록에 표시</label>
+        <span class="legend" id="mapLegend"></span>
+      </div>
+      <div id="map"></div>
+    </details>
+  </section>
+
   <div class="count" id="count"></div>
   <div class="list" id="list"></div>
   <button class="btn more" id="more" type="button" hidden>더 보기</button>
@@ -261,6 +283,7 @@ a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
     <div class="cmp-scroll" id="cmpBody"></div>
   </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="rules.js"></script>
 <script src="loan.js"></script>
 <script src="app.js"></script>
