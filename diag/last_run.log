@@ -1,8 +1,5 @@
-== 2026-11-13 06:53 ==
+== 2026-11-14 06:53 ==
 -- 단지정보(엑셀) --
-
-[notice] A new release of pip is available: 26.2.2 -> 26.3
-[notice] To update, run: pip install --upgrade pip
 다운로드 238바이트 · text/html;charset=utf-8 · None
 Traceback (most recent call last):
   File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 152, in <module>
