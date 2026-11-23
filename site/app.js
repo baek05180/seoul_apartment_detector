@@ -7,7 +7,7 @@
     set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  let RAW = [], META = null, RATE = window.RULES.defaultRate, shown = PAGE;
+  let RAW = [], META = null, RATE = window.RULES.defaultRate, IDX = null, shown = PAGE;
   let ROWS = [];                      // 현재 직거래 설정으로 계산된 단지 목록
   const selGu = new Set(store.get("gu") || []);
 
@@ -34,10 +34,20 @@
   const isoMinus = (d, days) => new Date(d.getTime() - days * 864e5).toISOString().slice(0, 10);
 
   // ------------------------------------------------ 직거래 포함 여부에 따라 통계 계산
+  // 주간 가격지수: 거래일 시점 지수 → 최신 지수 비율로 오늘 시점 환산
+  function idxAt(gu, date) {
+    const ser = IDX?.series?.[gu]; if (!ser || !ser.length) return null;
+    let v = ser[0][1];
+    for (const [d, x] of ser) { if (d <= date) v = x; else break; }
+    return v;
+  }
+  const idxLatest = (gu) => { const ser = IDX?.series?.[gu]; return ser && ser.length ? ser[ser.length - 1][1] : null; };
+
   function compute() {
     const withDirect = $("direct").checked;
+    const useAdj = $("pbasis").value !== "raw";
     const ref = new Date(META.generatedAt);
-    const d90 = isoMinus(ref, 90), d180 = isoMinus(ref, 180);
+    const d30 = isoMinus(ref, 30), d90 = isoMinus(ref, 90), d120 = isoMinus(ref, 120), d180 = isoMinus(ref, 180);
     ROWS = [];
     for (const it of RAW) {
       const ts = withDirect ? it.t : it.t.filter((x) => !x[3]);
@@ -45,15 +55,24 @@
       const p3 = ts.filter((x) => x[0] >= d90).map((x) => x[1]);
       const pp = ts.filter((x) => x[0] < d90 && x[0] >= d180).map((x) => x[1]);
       const s3 = median(p3), s6 = median(ts.map((x) => x[1]));
-      const price = s3 ?? s6;
+      const raw = s3 ?? s6;
+      // 시점 보정가(추정): 각 거래가 × (최신 지수 / 거래 당시 지수)
+      const last = idxLatest(it.g);
+      const adjOf = (x) => { const v = idxAt(it.g, x[0]); return last && v ? x[1] * last / v : null; };
+      const a3 = ts.filter((x) => x[0] >= d90).map(adjOf).filter((v) => v != null);
+      const adj = last ? Math.round(median(a3.length ? a3 : ts.map(adjOf).filter((v) => v != null)) || 0) || null : null;
+      const price = useAdj && adj ? adj : raw;
+      // 거래량: 신고가 거의 끝난 구간(30~120일 전)으로 계산 → 이번 달 미집계 영향 제거
+      const n3 = ts.filter((x) => x[0] >= d120 && x[0] < d30).length;
       const W = window.RULES.work;
       const wk = it.lat ? distKm(it.lat, it.lng, W.lat, W.lng) : null;
       const walk = it.sm != null ? Math.round(it.sm * window.RULES.walkFactor / window.RULES.walkMPerMin) : null;
       ROWS.push({
-        ...it, ts, s3, s6, wk, walk, c3: p3.length, c6: ts.length, sp: median(pp), price,
+        ...it, ts, s3, s6, wk, walk, c3: p3.length, n3, c6: ts.length, sp: median(pp), price, raw, adj,
+        adjPct: adj && raw ? (adj - raw) / raw * 100 : null,
         lo: p3.length ? Math.min(...p3) : null, hi: p3.length ? Math.max(...p3) : null,
         nd: it.t.filter((x) => x[3]).length,
-        jr: it.j && price ? Math.round(it.j / price * 1000) / 10 : null,
+        jr: it.j && raw ? Math.round(it.j / raw * 1000) / 10 : null,
         tr: s3 && median(pp) ? (s3 - median(pp)) / median(pp) * 100 : null,
       });
     }
@@ -149,7 +168,7 @@
         hh: it.hh ? lin(Math.log10(it.hh), Math.log10(3000), 2) : 0,   // 세대수 정보 없음 = 대부분 150세대 미만 소규모 → 0점
         age: it.b ? lin(year - it.b, 5, 35) : null,
         pk: lin(it.pk, 1.5, 0.5),
-        deal: lin(it.c3, 10, 1),                // 최근 3개월 매매 1건 0점 · 10건 이상 100점
+        deal: lin(it.n3, 10, 1),                // 신고 완료된 3개월(30~120일 전) 매매 1건 0점 · 10건 이상 100점
       };
       let sum = 0, ws = 0;
       for (const [k, v] of Object.entries(part)) if (v != null && w[k]) { sum += v * w[k]; ws += w[k]; }
@@ -197,18 +216,18 @@
   });
 
   // ------------------------------------------------ 필터
-  const FIELDS = ["q","pmin","pmax","amin","amax","bmin","hmin","wmax","kmax","cmin","sort","direct","affordable"];
+  const FIELDS = ["q","pmin","pmax","amin","amax","bmin","hmin","wmax","kmax","cmin","sort","direct","affordable","pbasis"];
   const saved = store.get("filters") || {};
   if (!saved.fv) { saved.hmin = saved.hmin || "300"; }   // 기본: 300세대 미만·세대수 정보 없는 단지 숨김
   FIELDS.forEach((f) => {
     const el = $(f);
     if (saved[f] != null) el.type === "checkbox" ? (el.checked = saved[f]) : (el.value = saved[f]);
-    el.addEventListener("input", () => { shown = PAGE; saveF(); if (f === "direct") compute(); render(); });
+    el.addEventListener("input", () => { shown = PAGE; saveF(); if (f === "direct" || f === "pbasis") compute(); render(); });
   });
   function saveF(){ const o = { fv: 2 }; FIELDS.forEach((f) => { const e = $(f); o[f] = e.type === "checkbox" ? e.checked : e.value; }); store.set("filters", o); }
   $("reset").addEventListener("click", () => {
     FIELDS.forEach((f) => { const e = $(f); e.type === "checkbox" ? (e.checked = false) : (e.value = ""); });
-    $("cmin").value = "1"; $("hmin").value = "300"; $("sort").value = "score";
+    $("cmin").value = "1"; $("hmin").value = "300"; $("sort").value = "score"; $("pbasis").value = "adj";
     selGu.clear(); store.set("gu", []); renderGu(); saveF(); compute(); shown = PAGE; render();
   });
 
@@ -229,7 +248,7 @@
       if (hmin != null && (it.hh ?? 0) < hmin) return false;
       if (wmax != null && (it.walk == null || it.walk > wmax)) return false;
       if (kmax != null && (it.wk == null || it.wk > kmax)) return false;
-      if (it.c3 < cmin) return false;
+      if (Math.max(it.n3, it.c3) < cmin) return false;   // 신고 완료 구간 또는 최근 3개월 중 많은 쪽
       if (aff && it.L && !it.L.ok) return false;
       return true;
     });
@@ -243,7 +262,7 @@
       hhd: (a, b) => nz(b.hh, -1) - nz(a.hh, -1),
       walka: (a, b) => nz(a.walk, 1e9) - nz(b.walk, 1e9),
       worka: (a, b) => nz(a.wk, 1e9) - nz(b.wk, 1e9),
-      c3d: (a, b) => b.c3 - a.c3 || b.c6 - a.c6,
+      c3d: (a, b) => b.n3 - a.n3 || b.c6 - a.c6,
       lastd: (a, b) => b.ts[0][0].localeCompare(a.ts[0][0]),
       trendd: (a, b) => nz(b.tr, -1e9) - nz(a.tr, -1e9),
       trenda: (a, b) => nz(a.tr, 1e9) - nz(b.tr, 1e9),
@@ -296,6 +315,7 @@
         </div>
         <div class="price">
           <div class="big">${won(it.price)}</div>
+          ${it.price === it.adj && it.adj ? `<div class="sm">오늘 환산(추정) ${it.adjPct >= 0 ? "+" : ""}${it.adjPct.toFixed(1)}% · 실거래 ${won(it.raw)}</div>` : ""}
           <div class="sm">${it.s3 != null ? `최근 3개월 중간값 · ${it.c3}건${it.c3 > 1 ? ` (${won(it.lo)}~${won(it.hi)})` : ""}` : `6개월 중간값 · ${it.c6}건`}
           ${it.c3 === 1 ? '<span class="tag">거래 1건</span>' : ""}</div>
         </div>
@@ -366,7 +386,8 @@
     const rows = [
       ["내 점수", (x) => x.sc, (v) => v == null ? "–" : `<b>${v}점</b>`, 1],
       ...WEIGHTS.map(([k, l]) => [`└ ${l}`, (x) => x.part?.[k], (v) => v == null ? "정보 없음" : `${Math.round(v)}점`, 1]),
-      ["가격(최근 3개월 중간값)", (x) => x.price, won, -1],
+      [$("pbasis").value !== "raw" && IDX ? "가격(오늘 환산 추정)" : "가격(최근 3개월 중간값)", (x) => x.price, won, -1],
+      ["실거래 중간값", (x) => x.raw, won, 0],
       ["㎡당 가격", (x) => Math.round(x.price / x.a), won, -1],
       ["전용면적", (x) => x.a, (v) => `${v}㎡ (${pyeong(v)}평)`, 0],
       ["준공", (x) => x.b, (v) => v ? `${v}년 (${year - v}년차)` : "–", 1],
@@ -377,7 +398,7 @@
       ["가까운 지하철역", (x) => x.walk, (v, x) => x.sn ? `${esc(x.sn)} 도보 약 ${v}분` : "–", -1],
       [`${W}까지 직선거리`, (x) => x.wk, (v) => v != null ? `${v.toFixed(1)}km` : "–", -1],
       ["최근 거래", (x) => x.ts[0][0], (v, x) => `${v}<br><span class="muted">${won(x.ts[0][1])} · ${x.ts[0][2]}층</span>`, 0],
-      ["3개월 거래 건수", (x) => x.c3, (v) => `${v}건`, 1],
+      ["거래 건수(신고 완료 3개월)", (x) => x.n3, (v) => `${v}건`, 1],
       ["직전 3개월 대비", (x) => x.tr, (v) => v == null ? "–" : `<span class="${v >= 0 ? "up" : "down"}">${v >= 0 ? "▲" : "▼"} ${Math.abs(v).toFixed(1)}%</span>`, 0],
       ["전세 중간값", (x) => x.j, won, 0],
       ["전세가율", (x) => x.jr, (v) => v != null ? `${v}%` : "–", 0],
@@ -500,8 +521,10 @@
   Promise.all([
     fetch("data/summary.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }),
     fetch("data/rate.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-  ]).then(([j, rate]) => {
+    fetch("data/index.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]).then(([j, rate, idx]) => {
     if (rate && rate.base) RATE = rate;
+    if (idx && idx.series) IDX = idx;
     META = j.meta; RAW = j.items;
     renderFresh(); compute(); renderCalc(); render();
   }).catch(() => {

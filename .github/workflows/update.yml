@@ -33,6 +33,7 @@ jobs:
       MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
       ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
       KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+      REB_API_KEY: ${{ secrets.REB_API_KEY }}
       PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v5
@@ -57,6 +58,7 @@ jobs:
               echo "-- 단지정보(엑셀) --"; pip install -q openpyxl && python scripts/fetch_kapt_excel.py || echo "(엑셀 단계 실패, 계속 진행)"
               echo "-- 단지정보(API) --"; python scripts/fetch_complex.py || echo "(단지정보 단계 실패, 계속 진행)"
               echo "-- 금리 --";     python scripts/fetch_rate.py    || echo "(금리 단계 실패, 계속 진행)"
+              echo "-- 가격지수 --"; python scripts/fetch_index.py   || echo "(가격지수 단계 실패, 계속 진행)"
             fi
             echo "-- 실거래 --";     python scripts/fetch_molit.py; MOLIT_RC=$?
             if [ "$PROBE" != "1" ] && [ "$MOLIT_RC" = "0" ]; then
