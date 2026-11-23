@@ -60,7 +60,8 @@
       const last = idxLatest(it.g);
       const adjOf = (x) => { const v = idxAt(it.g, x[0]); return last && v ? x[1] * last / v : null; };
       const a3 = ts.filter((x) => x[0] >= d90).map(adjOf).filter((v) => v != null);
-      const adj = last ? Math.round(median(a3.length ? a3 : ts.map(adjOf).filter((v) => v != null)) || 0) || null : null;
+      // 추정치라 100만 원 단위로 반올림
+      const adj = last ? Math.round((median(a3.length ? a3 : ts.map(adjOf).filter((v) => v != null)) || 0) / 100) * 100 || null : null;
       const price = useAdj && adj ? adj : raw;
       // 거래량: 신고가 거의 끝난 구간(30~120일 전)으로 계산 → 이번 달 미집계 영향 제거
       const n3 = ts.filter((x) => x[0] >= d120 && x[0] < d30).length;
