@@ -1,26 +1,17 @@
-== 2026-11-23 16:21 ==
+== 2026-11-23 17:29 ==
 -- 단지정보(엑셀) --
-다운로드 238바이트 · text/html;charset=utf-8 · None
-Traceback (most recent call last):
-  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 152, in <module>
-    sys.exit(main())
-             ^^^^^^
-  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 65, in main
-    for row in it:
-               ^^
-  File "/home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/fetch_kapt_excel.py", line 44, in rows_from
-    raise RuntimeError(f"엑셀 형식이 아님: {data[:200]!r}")
-RuntimeError: 엑셀 형식이 아님: b'\r\n\r\n\r\n\r\n\r\n<script type="text/javascript">\r\n\r\n\r\n\talert(\'\xec\xa0\x95\xec\x83\x81\xec\xa0\x81\xec\x9d\xb8 \xec\xa0\x91\xea\xb7\xbc\xec\x9d\xb4 \xec\x95\x84\xeb\x8b\x99\xeb\x8b\x88\xeb\x8b\xa4.\\n\xeb\xac\xb8\xec\xa0\x9c\xea\xb0\x80 \xec\xa7\x80\xec\x86\x8d\xeb\x90\xa0 \xec\x8b\x9c \xea\xb4\x80\xeb\xa6\xac\xec\x9e\x90\xec\x97\x90\xea\xb2\x8c \xeb\xac\xb8\xec\x9d\x98\xed\x95\x98\xec\x97\xac \xec\xa3\xbc\xec\x8b\xad\xec\x8b\x9c\xec\x98\xa4.\');\r\n\twindow.location = \'/web/board/webRe'
-(엑셀 단계 실패, 계속 진행)
+엑셀 자동 다운로드는 K-apt가 막고 있어 건너뜀 (갱신하려면 받은 파일을 직접 반영)
 -- 단지정보(API) --
-정보 받을 단지 3367개 (전체 3412개)
+정보 받을 단지 2706개 (전체 3412개)
+[경고] 요청 실패: <urlopen error _ssl.c:994: The handshake operation timed out>
   200개 저장
   400개 저장
-  600개 저장
 빈 응답이 계속돼 멈춤(하루 호출량 소진 추정) → 다음 실행에서 이어서 받음
-이번 실행 688개 수집 · 기본정보 남은 단지 30개 · 지하철 등 상세정보 남은 단지 2679개
+이번 실행 511개 수집 · 기본정보 남은 단지 30개 · 지하철 등 상세정보 남은 단지 2195개
 -- 금리 --
 주담대 평균금리 4.88% (2026-09) 저장
+-- 가격지수 --
+주간 지수 저장: 서울 25개 구 · 40주 · 최신 2026-11-16
 -- 실거래 --
 종로구 완료 (누적 매매 154건, 전월세 892건)
 중구 완료 (누적 매매 415건, 전월세 2311건)
@@ -50,6 +41,4 @@ RuntimeError: 엑셀 형식이 아님: b'\r\n\r\n\r\n\r\n\r\n<script type="text/
 단지정보 연결: 5848/7867
 저장: /home/runner/work/seoul_apartment_detector/seoul_apartment_detector/scripts/../site/data/summary.json · 단지·평형 7867개 · 최신 계약일 2026-11-20 · 실패 0건
 -- 좌표·지하철역 --
-좌표 조회할 주소 213개 (저장된 주소 4559개)
-이번에 213개 조회 · 남은 주소 0개
 좌표 붙은 단지·평형 7867/7867
