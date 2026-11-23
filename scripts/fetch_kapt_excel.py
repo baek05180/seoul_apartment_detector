@@ -59,6 +59,9 @@ def main() -> int:
         if xf and (today - dt.date.fromisoformat(xf)).days < MAX_AGE_DAYS and os.environ.get("FORCE") != "1":
             print(f"엑셀은 {xf}에 반영돼서 건너뜀")
             return 0
+        if os.environ.get("TRY_DOWNLOAD") != "1":   # K-apt가 자동 다운로드를 막아서 기본은 건너뜀
+            print("엑셀 자동 다운로드는 K-apt가 막고 있어 건너뜀 (갱신하려면 받은 파일을 직접 반영)")
+            return 0
         data = download()
     it = rows_from(data)
     header, col = None, {}
